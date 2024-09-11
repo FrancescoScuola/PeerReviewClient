@@ -1,0 +1,15 @@
+﻿Studente:
+- Il ragazzo può vedere le domande che ha fatto						x
+- Il ragazzo può vedere i feedback che ha ricevuto					x
+- Il ragazzo può vedere i feedback che ha dato						NO
+- Il ragazzo può iscriversi ad un corso								x
+- Il ragazzo assente vedo lo stesso che deve fare delle domande		x
+
+
+Insegnante:
+- il docente può vedere la media della classe                       NO
+- il docente può vedere la media di ogni studente                   NO
+- il docente può vedere le domande che ha fatto ogni studente       NO
+
+
+Cancella le credenziali, lo tolgo dal menu

@@ -13,83 +13,9 @@ namespace PeerReviewClient
         public static string filePath = "loginInfo.json";
         public static string sw_version = "0.5.0";       
         public static string api_version = "0.5.0";       
-
-
-
         // Sito per l'api
         public static int WEBSITE = 8;
-
-        public static Credentials GetCredentials()
-        {
-            string mail;
-            string password;
-            string? courseID;
-            int role;
-
-            while (true)
-            {
-                Console.Write("Inserisci la tua mail: ");
-                mail = Console.ReadLine();
-
-                Console.Write("Inserisci la tua password: ");
-                password = ReadPassword();
-
-                Console.Write("Inserisci l'ID del tuo corso o il codice fornito se è la prima volta che ti colleghi: ");
-                courseID = Console.ReadLine();
-
-                Console.Write($"Inserisci il tuo ruolo ({(int)PeerReviewRole.student} studente, {(int)PeerReviewRole.teacher} docente): ");
-                var tRole = Console.ReadLine();
-                var isValidRole = int.TryParse(tRole, out role);
-
-                // Check if email is valid
-                var isValiMail = new EmailAddressAttribute().IsValid(mail);
-
-                if (string.IsNullOrEmpty(mail) || string.IsNullOrEmpty(password) || isValiMail == false || string.IsNullOrEmpty(courseID) || isValidRole == false)
-                {
-                    Console.WriteLine("Mail, ruolo o password non validi, riprova.");
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            return new Credentials
-            {
-                email = mail,
-                password = password,
-                courseID = courseID,
-                role = (PeerReviewRole)role
-            };
-
-        }
-
-        public static string ReadPassword()
-        {
-            StringBuilder password = new StringBuilder();
-            ConsoleKeyInfo key;
-
-            do
-            {
-                key = Console.ReadKey(intercept: true); // intercept: true per non mostrare il carattere
-
-                if (key.Key != ConsoleKey.Backspace && key.Key != ConsoleKey.Enter)
-                {
-                    password.Append(key.KeyChar);
-                    Console.Write("*"); // Mostra un asterisco per ogni carattere digitato
-                }
-                else if (key.Key == ConsoleKey.Backspace && password.Length > 0)
-                {
-                    password.Remove(password.Length - 1, 1);
-                    Console.Write("\b \b"); // Cancella l'ultimo carattere e il relativo asterisco
-                }
-            }
-            while (key.Key != ConsoleKey.Enter); // Continua fino a quando non si preme Invio
-
-            Console.WriteLine(); // Sposta il cursore alla riga successiva
-            return password.ToString();
-        }
-
+    
         static async Task Main(string[] args)
         {
             try
@@ -290,6 +216,75 @@ namespace PeerReviewClient
             var y = Console.ReadKey();
 
             
+        }
+        public static Credentials GetCredentials()
+        {
+            string mail;
+            string password;
+            string? courseID;
+            int role;
+
+            while (true)
+            {
+                Console.Write("Inserisci la tua mail: ");
+                mail = Console.ReadLine();
+
+                Console.Write("Inserisci la tua password: ");
+                password = ReadPassword();
+
+                Console.Write("Inserisci l'ID del tuo corso o il codice fornito se è la prima volta che ti colleghi: ");
+                courseID = Console.ReadLine();
+
+                Console.Write($"Inserisci il tuo ruolo ({(int)PeerReviewRole.student} studente, {(int)PeerReviewRole.teacher} docente): ");
+                var tRole = Console.ReadLine();
+                var isValidRole = int.TryParse(tRole, out role);
+
+                // Check if email is valid
+                var isValiMail = new EmailAddressAttribute().IsValid(mail);
+
+                if (string.IsNullOrEmpty(mail) || string.IsNullOrEmpty(password) || isValiMail == false || string.IsNullOrEmpty(courseID) || isValidRole == false)
+                {
+                    Console.WriteLine("Mail, ruolo o password non validi, riprova.");
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return new Credentials
+            {
+                email = mail,
+                password = password,
+                courseID = courseID,
+                role = (PeerReviewRole)role
+            };
+
+        }
+        public static string ReadPassword()
+        {
+            StringBuilder password = new StringBuilder();
+            ConsoleKeyInfo key;
+
+            do
+            {
+                key = Console.ReadKey(intercept: true); // intercept: true per non mostrare il carattere
+
+                if (key.Key != ConsoleKey.Backspace && key.Key != ConsoleKey.Enter)
+                {
+                    password.Append(key.KeyChar);
+                    Console.Write("*"); // Mostra un asterisco per ogni carattere digitato
+                }
+                else if (key.Key == ConsoleKey.Backspace && password.Length > 0)
+                {
+                    password.Remove(password.Length - 1, 1);
+                    Console.Write("\b \b"); // Cancella l'ultimo carattere e il relativo asterisco
+                }
+            }
+            while (key.Key != ConsoleKey.Enter); // Continua fino a quando non si preme Invio
+
+            Console.WriteLine(); // Sposta il cursore alla riga successiva
+            return password.ToString();
         }
 
         static async Task<Guid> GetAuthToken(HttpResponseMessage loginResponse)

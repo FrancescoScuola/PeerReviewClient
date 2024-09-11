@@ -36,7 +36,6 @@ namespace PeerReviewClient
             this.saveCredentials = options.saveCredentials;
             this.localization = options.localization;
         }
-
         public abstract List<MenuOption> GetMenuOptions();
 
         private void DisplayMenu(List<MenuOption> options)

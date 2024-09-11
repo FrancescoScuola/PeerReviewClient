@@ -52,10 +52,19 @@ Quando l'applicazione viene avviata, all'utente viene richiesto di autenticarsi 
 - .NET Core SDK
 - Un'istanza dell'API REST per l'integrazione
 
-## Istruzioni per l'installazione
-1. Clonare il repository del progetto.
-2. Compilare il progetto utilizzando il comando `dotnet build`.
-3. Eseguire il programma con `dotnet run`.
+## Istruzioni per l'installazione studenti
+- [Leggi la documentazione completa step by step](https://github.com/FrancescoScuola/PeerReviewClient/blob/main/Docs/readme_student.md). 
+
+In breve:
+1. Registrati su baobab.school.
+2. Clonare il repository del progetto.
+3. Compilare il progetto utilizzando il comando `dotnet build`.
+4. Eseguire il programma con `dotnet run`.
+5. Effettuare l'autenticazione inserendo le credenziali e l'ID del corso.
+6. Utilizzare il menu per visualizzare le lezioni, inviare compiti, fornire feedback e visualizzare i voti.
+
+## Istruzioni per l'installazione docenti
+- A breve.
 
 ## Futuri sviluppi
 - Aggiungere ulteriori funzionalità per gestire assenze e presenze degli studenti.

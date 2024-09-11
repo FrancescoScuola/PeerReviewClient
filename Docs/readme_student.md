@@ -27,7 +27,7 @@ Segui questi passaggi per registrarti:
 ### 2. Scaricare il progetto
 Puoi ottenere il progetto scaricandolo da una delle seguenti fonti:
 - Clona il repository GitHub (se hai git già installato sul tuo pc): 
- `git clone https://github.com/tuo-repository/peer-review-client.git`
+ `https://github.com/FrancescoScuola/PeerReviewClient.git`
  
 -   Oppure, ottieni una cartella compressa con i file del progetto.  Per scaricare il progetto, segui questi passaggi:
 

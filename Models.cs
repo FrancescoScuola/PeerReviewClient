@@ -45,6 +45,12 @@
 
     }
 
+    public class LoginResultData
+    {
+        public Guid guidToken { get; set; } = new Guid();
+        public PeerReviewRoleResponseJsonData swVersion { get; set; } = new PeerReviewRoleResponseJsonData();
+    }
+
     // Classe per inizializiare il menu
     public class MenuInitOptionsData
     {

@@ -7,6 +7,8 @@
 - Il ragazzo può vedere i voti che ha preso dal docente				NO
 - Il ragazzo che non risponde prende un penalità					NO
 - Il ragazzo che non da feedback prende un penalità					NO
+- Il ragazzo può fare l'upload di un file (pdf)						NO
+- Il ragazzo può fare l'upload di un file per il feedback (zip)		NO
 
 Insegnante:
 - il docente può vedere la media della classe                       NO
@@ -23,4 +25,5 @@ Miscele:
 - Refactoring parte iniziale									    x
 - Salvare la lingua scelta in un file							    x
 - Creare un file di configurazione								    x
+- Spostare le scritte fuori dai metodi							    x
 

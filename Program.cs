@@ -40,11 +40,6 @@ namespace PeerReviewClient
                     UseCookies = true
                 };
 
-                var guidToken = new Guid();
-                var isLoginDone = false;
-                var isRoleFound = false;
-                PeerReviewRoleResponseJsonData swVersion = null;
-
                 using (var client = new HttpClient(handler))
                 {
                     // Imposta l'URL base per il client
@@ -52,114 +47,15 @@ namespace PeerReviewClient
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                    var loadAnimation = false;
-                    Task progressTask = null;
-                    for (var countAttempt = 0; countAttempt < 3; countAttempt++)
-                    {
-                        Console.WriteLine($"Tentativo di autenticazione {countAttempt + 1} di 3");
-                        Console.WriteLine();
-
-                        using (var cts = new CancellationTokenSource())
-                        {
-                            // Avvia il finto task di caricamento
-                            var loadingTask = Task.Run(async () =>
-                            {
-                                try
-                                {
-                                    for (int i = 0; i < 10; i++)
-                                    {
-                                        if (cts.Token.IsCancellationRequested) break;
-                                        if (i == 0)
-                                        {
-                                            Console.Write("Caricamento in corso ...");
-                                        }
-                                        else
-                                        {
-                                            Console.Write(".");
-                                        }
-                                        await Task.Delay(1000, cts.Token); // Attende 1 secondo
-                                    }
-                                }
-                                catch (TaskCanceledException)
-                                {
-                                    // Ignora l'eccezione quando il task è cancellato
-                                }
-
-                            }, cts.Token);
-
-
-                            // Atutentificazione mail password
-                            if (isLoginDone == false)
-                            {
-                                HttpResponseMessage loginResponse = await GetAuth(credentials, client);
-
-                                DeleteAnimationTask(cts, progressTask);
-                                if (progressTask != null)
-                                {
-                                    await progressTask;
-                                }
-
-                                Console.WriteLine();
-                                if (loginResponse.IsSuccessStatusCode == false)
-                                {
-                                    AnsiConsole.MarkupLine($"[red]Errore nell'autenticazione: {loginResponse.StatusCode}[/]");
-                                    continue;
-                                }
-                                AnsiConsole.MarkupLine($"[green]1. Autenticazione avvenuta con successo![/]");
-
-
-                                // Rispondo solo con il "token" di autentificazione
-                                guidToken = await GetAuthToken(loginResponse);
-
-                                // Utente non ancora iscritto al corso
-                                // Non sa l'id del corso ma solo la password
-                                if (int.TryParse(credentials.courseID, out var parseResult) == false)
-                                {
-                                    if (EnrollStudent(credentials, client) == false)
-                                    {
-                                        continue;
-                                    }
-                                }
-
-                                isLoginDone = true;
-                            }
-
-                            Console.WriteLine("");
-                            Console.WriteLine($"Controllo del ruolo.");
-
-                            // Una volta ottenuto il token per l'autenticazione, controllo il ruolo
-                            if (int.TryParse(credentials.courseID, out _) == true)
-                            {
-                                var testCheckRole = CheckRole(credentials, client);
-                                if (testCheckRole.Result.Result == ExecutionStatus.Done)
-                                {
-                                    credentials.isCredentialFileExist = testCheckRole.Result.Value.isCredentialsFound;
-                                    swVersion = testCheckRole.Result.Value.peerReviewRoleResponse;
-                                    isRoleFound = true;
-                                    break;
-                                }
-                            }
-
-
-                        }
-
-                    }
-
-                    if (isRoleFound == false)
-                    {
-                        Console.WriteLine("");
-                        Console.WriteLine("Errore nell'autenticazione");
-                        return;
-                    }
-
-                    if (swVersion == null)
-                    {
-                        Console.WriteLine("Errore nel controllo del ruolo");
+                    // Tentativo di login e controllo del ruolo
+                    var loginResult = await AttemptLoginAsync(client, credentials);
+                    if (loginResult.Result != ExecutionStatus.Done) {
+                        AnsiConsole.MarkupLine($"[red]{loginResult.Message}[/]");
                         return;
                     }
 
                     Console.WriteLine();
-                    var checkSwVesion = new VersionChecker(sw_version, swVersion.software_version);
+                    var checkSwVesion = new VersionChecker(sw_version, loginResult.Value.swVersion.software_version);
                     switch (checkSwVesion.CompareVersions())
                     {
                         case VersionComparisonResult.Incompatible:
@@ -179,7 +75,7 @@ namespace PeerReviewClient
                         courseId = int.Parse(credentials.courseID),
                         localization = localization,
                         saveCredentials = credentials.isCredentialFileExist,
-                        token = guidToken
+                        token = loginResult.Value.guidToken
                     };
 
                     IMenu menu;
@@ -212,6 +108,125 @@ namespace PeerReviewClient
             var y = Console.ReadKey();
 
 
+        }
+
+
+
+        private static async Task<OperationResult<LoginResultData>> AttemptLoginAsync(HttpClient client, Credentials credentials)
+        {
+            var isLoginDone = false;
+            var isRoleFound = false;
+
+            var loginResultData = new LoginResultData
+            {
+                guidToken = new Guid(),
+                swVersion = null
+            };
+
+            for (var countAttempt = 0; countAttempt < 3; countAttempt++)
+            {
+                Console.WriteLine($"Tentativo di autenticazione {countAttempt + 1} di 3");
+                Console.WriteLine();
+
+                using var cts = new CancellationTokenSource();
+                if (countAttempt == 0)
+                {
+                    LoadAnimations(cts);
+                }
+
+                // Atutentificazione mail password
+                if (isLoginDone == false)
+                {
+                    HttpResponseMessage loginResponse = await GetAuth(credentials, client);
+
+                    // Stoppo l'animazione
+                    cts.Cancel();
+
+                    Console.WriteLine();
+                    if (loginResponse.IsSuccessStatusCode == false)
+                    {
+                        AnsiConsole.MarkupLine($"[red]Errore nell'autenticazione: {loginResponse.StatusCode}[/]");
+                        continue;
+                    }
+                    AnsiConsole.MarkupLine($"[green]1. Autenticazione avvenuta con successo![/]");
+
+
+                    // Rispondo solo con il "token" di autentificazione
+                    loginResultData.guidToken = await GetAuthToken(loginResponse);
+
+                    // Utente non ancora iscritto al corso
+                    // Non sa l'id del corso ma solo la password
+                    if (int.TryParse(credentials.courseID, out var parseResult) == false)
+                    {
+                        if (EnrollStudent(credentials, client) == false)
+                        {
+                            continue;
+                        }
+                    }
+
+                    isLoginDone = true;
+                }
+
+                Console.WriteLine("");
+                Console.WriteLine($"Controllo del ruolo.");
+
+                // Una volta ottenuto il token per l'autenticazione, controllo il ruolo
+                if (int.TryParse(credentials.courseID, out _) == true)
+                {
+                    var testCheckRole = CheckRole(credentials, client);
+                    if (testCheckRole.Result.Result == ExecutionStatus.Done)
+                    {
+                        credentials.isCredentialFileExist = testCheckRole.Result.Value.isCredentialsFound;
+                        loginResultData.swVersion = testCheckRole.Result.Value.peerReviewRoleResponse;
+                        isRoleFound = true;
+                        break;
+                    }
+                }
+            }
+
+            if (loginResultData.swVersion == null)
+            {
+                return OperationResult<LoginResultData>.Fail("Errore nell'autenticazione");
+            }
+
+
+            if (isRoleFound == false)
+            {
+                return OperationResult<LoginResultData>.Fail("Errore nell'autenticazione");
+            }
+
+            return OperationResult<LoginResultData>.Ok(loginResultData);
+
+
+        }
+
+        private static void LoadAnimations(CancellationTokenSource cts)
+        {
+            // Avvia il finto task di caricamento
+            var loadingTask = Task.Run(async () =>
+            {
+                try
+                {
+                    for (int i = 0; i < 10; i++)
+                    {
+                        if (cts.Token.IsCancellationRequested) break;
+                        if (i == 0)
+                        {
+                            Console.Write("Caricamento in corso ...");
+                        }
+                        else
+                        {
+                            Console.Write(".");
+                        }
+                        await Task.Delay(1000, cts.Token); // Attende 1 secondo
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    // Ignora l'eccezione quando il task è cancellato
+                }
+
+            }, cts.Token);
         }
 
         private static bool IsDebugMode(string[] args)
@@ -326,25 +341,6 @@ namespace PeerReviewClient
             var cleanToken = token.ToString().Replace("{", "").Replace("}", "");
             var guidToken = new Guid(cleanToken);
             return guidToken;
-        }
-
-        private static void DeleteAnimationTask(CancellationTokenSource cts, Task? loadingTask)
-        {
-            // Cancella il finto task di caricamento se l'operazione è completa prima dei x secondi
-            cts.Cancel();
-
-            if (loadingTask == null)
-            {
-                return;
-            }
-
-            // Aspetta che il task di caricamento termini (se non già terminato)
-            try
-            {
-                loadingTask.Wait(cts.Token);
-            }
-            catch (TaskCanceledException) { }
-            Console.WriteLine("");
         }
 
         private static bool EnrollStudent(Credentials? credentials, HttpClient client)

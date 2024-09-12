@@ -323,6 +323,8 @@ namespace PeerReviewClient
         {
             DisplayTitle("Submitting Assignment");
 
+            var isPdf = false;
+
             var fetchData = await localCache.GetToDoQuestionsAsync();
             if (fetchData.Result == ExecutionStatus.Done)
             {
@@ -341,20 +343,32 @@ namespace PeerReviewClient
                         var questionId = GetQuestionId(todoQuestions);
                         if (questionId != -1)
                         {
-                            
+
                             DisplayMessage(" ");
                             PeerReviewQuestionData questionTodo = null;
                             foreach (var lesson in todoQuestions)
-                            {                                
+                            {
                                 if (lesson.lesson_questions.Any(q => q.id == questionId))
                                 {
-                                    questionTodo = lesson.lesson_questions.First(q => q.id == questionId);                                    
+                                    questionTodo = lesson.lesson_questions.First(q => q.id == questionId);
                                     break;
                                 }
                             }
 
                             DisplayMessage($"Rispondi a '{questionTodo.question_text}'");
                             var answer = GetAnsware();
+                            if (answer.Trim().ToLower().EndsWith(".pdf"))
+                            {
+                                if (File.Exists(answer))
+                                {
+                                    isPdf = true;
+                                }
+                                else
+                                {
+                                    DisplayMessage("File not found. Please try again.");
+                                    return;
+                                }
+                            }
 
                             var isChatGpt = 0;
                             // Ask if user used GPT
@@ -367,7 +381,16 @@ namespace PeerReviewClient
                             var checkForConfermation = PromptForInlineInput("Vuoi confermare la risposta? (s/n): ");
                             if (checkForConfermation.ToLower() == "s")
                             {
-                                var submitAnswareResult = SubmitAnsware(questionId, answer, isChatGpt);
+                                var submitAnswareResult = false;
+                                if (isPdf)
+                                {
+                                    submitAnswareResult = SubmitPDFAnswareAsync(questionId, answer, isChatGpt).Result;
+                                }
+                                else
+                                {
+                                    submitAnswareResult = SubmitAnsware(questionId, answer, isChatGpt);
+                                }
+
                                 if (submitAnswareResult)
                                 {
                                     DisplayMessage("Answer submitted successfully.");
@@ -422,6 +445,59 @@ namespace PeerReviewClient
             return response.Result.IsSuccessStatusCode;
 
         }
+
+        private async Task<bool> SubmitPDFAnswareAsync(int questionId, string answer, int isChatGpt)
+        {
+            string filePath = answer;
+            string apiUrl = "PeerReview/Upload/Pdf";
+
+
+            // Aggiungi eventuali informazioni addizionali che vuoi inviare
+            var additionalData = new PeerReviewUpdatePdfJsonData()
+            {
+                website = 8,
+                lesson_id = questionId,
+                question_id = questionId
+            };
+
+            try
+            {
+
+                using var form = new MultipartFormDataContent();
+
+                // Aggiungi il file PDF
+                var fileContent = new ByteArrayContent(File.ReadAllBytes(filePath));
+                fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/pdf");
+                form.Add(fileContent, "file", Path.GetFileName(filePath));
+
+                // Aggiungi i dati addizionali come JSON
+                var jsonData = Newtonsoft.Json.JsonConvert.SerializeObject(additionalData);
+                form.Add(new StringContent(jsonData), "data");
+
+                // Invia la richiesta
+                HttpResponseMessage response = await Client.PostAsync(apiUrl, form);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("File caricato con successo!");
+                    return true;
+                }
+                else
+                {
+                    Console.WriteLine($"Errore durante l'upload: {response.StatusCode}");
+                    return false;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Errore: " + ex.Message);
+            }
+
+            return false;
+
+        }
+
 
         private string GetAnsware()
         {
@@ -528,7 +604,7 @@ namespace PeerReviewClient
 
         public TeacherMenu(MenuInitOptionsData options) : base(options)
         {
-            this.localCache = new TeacherLocalCache(courseId, token, role, options. client);
+            this.localCache = new TeacherLocalCache(courseId, token, role, options.client);
         }
 
         public override List<MenuOption> GetMenuOptions()
@@ -549,7 +625,7 @@ namespace PeerReviewClient
 
             var title = PromptForInput("Title: ");
             var fistDeadline = PromptForInput("First Deadline in h (48 default): ");
-            if(fistDeadline == string.Empty)
+            if (fistDeadline == string.Empty)
             {
                 fistDeadline = "48";
             }

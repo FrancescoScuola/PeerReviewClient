@@ -240,6 +240,13 @@
         public bool isCredentialsFound { get; set; }
     }
 
+    public class PeerReviewUpdatePdfJsonData
+    {
+        public int website { get; set; }
+        public int lesson_id { get; set; }
+        public int question_id { get; set; }
+    }
+
     #endregion
 
     #region Model Data API

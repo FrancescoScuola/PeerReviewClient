@@ -41,7 +41,7 @@ namespace PeerReviewClient
         private void DisplayMenu(List<MenuOption> options)
         {
             Console.WriteLine("");
-            Console.WriteLine("Please choose an option:");
+            Console.WriteLine("Scegli l'opzione:");
             foreach (var option in options)
             {
                 Console.WriteLine($" {option.Id}. {option.Description}");
@@ -119,7 +119,7 @@ namespace PeerReviewClient
                 var askConfirmation = PromptForInlineInput(localization.GetText(TranslateKey.DELETE_CREDENTIALS_CONFIRMATION));
                 if (askConfirmation.ToLower() == localization.GetText(TranslateKey.CONFIRMATION_YES))
                 {
-                    LoginManager.DeleteLoginInfo();
+                    CredentialsManager.DeleteLoginInfo();
                     DisplayMessage(localization.GetText(TranslateKey.DELETE_CREDENTIALS_DONE));
                     this.saveCredentials = false;
                     break;

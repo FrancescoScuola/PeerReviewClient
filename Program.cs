@@ -11,11 +11,11 @@ namespace PeerReviewClient
     internal class Program
     {
         public static string filePath = "loginInfo.json";
-        public static string sw_version = "0.5.0";       
-        public static string api_version = "0.5.0";       
+        public static string sw_version = "0.5.0";
+        public static string api_version = "0.5.0";
         // Sito per l'api
         public static int WEBSITE = 8;
-    
+
         static async Task Main(string[] args)
         {
             try
@@ -26,28 +26,12 @@ namespace PeerReviewClient
                 Console.WriteLine("Benvenuto in PeerReviewClient!");
                 Console.WriteLine("");
 
-                var debugMode = false;
+                bool debugMode = IsDebugMode(args);
 
-                if (args.Length > 0 && args[0] == "debug") { debugMode = true; }
-                if (Debugger.IsAttached == true) { debugMode = true; }
-                if(debugMode == true)
-                {
-                    Console.WriteLine("Debug mode attivo");
-                }
-                //debugMode = false;
+                var credentials = GetCredentials();
 
-                var loginManager = new LoginManager();
-                var credentials = LoginManager.GetLoginInfo(filePath);
-                var isCredentialsFound = credentials != null;
-
-                if (credentials == null)
-                {
-                    // File non trovato. Chiedo tramite console
-                    credentials = GetCredentials();
-                }
-
-                Console.Write("Press any key to start: ");
-                Console.ReadKey();
+                //Console.Write("Press any key to start: ");
+                //Console.ReadKey();
 
                 // Creazione di un HttpClientHandler con CookieContainer
                 var handler = new HttpClientHandler
@@ -68,6 +52,8 @@ namespace PeerReviewClient
                     client.DefaultRequestHeaders.Accept.Clear();
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+                    var loadAnimation = false;
+                    Task progressTask = null;
                     for (var countAttempt = 0; countAttempt < 3; countAttempt++)
                     {
                         Console.WriteLine($"Tentativo di autenticazione {countAttempt + 1} di 3");
@@ -101,10 +87,17 @@ namespace PeerReviewClient
 
                             }, cts.Token);
 
+
                             // Atutentificazione mail password
                             if (isLoginDone == false)
                             {
                                 HttpResponseMessage loginResponse = await GetAuth(credentials, client);
+
+                                DeleteAnimationTask(cts, progressTask);
+                                if (progressTask != null)
+                                {
+                                    await progressTask;
+                                }
 
                                 Console.WriteLine();
                                 if (loginResponse.IsSuccessStatusCode == false)
@@ -112,9 +105,8 @@ namespace PeerReviewClient
                                     AnsiConsole.MarkupLine($"[red]Errore nell'autenticazione: {loginResponse.StatusCode}[/]");
                                     continue;
                                 }
-
                                 AnsiConsole.MarkupLine($"[green]1. Autenticazione avvenuta con successo![/]");
-                                DeleteAsyncTask(cts, loadingTask);                                
+
 
                                 // Rispondo solo con il "token" di autentificazione
                                 guidToken = await GetAuthToken(loginResponse);
@@ -132,20 +124,23 @@ namespace PeerReviewClient
                                 isLoginDone = true;
                             }
 
+                            Console.WriteLine("");
                             Console.WriteLine($"Controllo del ruolo.");
 
                             // Una volta ottenuto il token per l'autenticazione, controllo il ruolo
-                            if (int.TryParse(credentials.courseID, out var _) == true)
+                            if (int.TryParse(credentials.courseID, out _) == true)
                             {
-                                var testCheckRole = CheckRole(credentials, isCredentialsFound, client);
+                                var testCheckRole = CheckRole(credentials, client);
                                 if (testCheckRole.Result.Result == ExecutionStatus.Done)
                                 {
-                                    isCredentialsFound = testCheckRole.Result.Value.isCredentialsFound;                                    
+                                    credentials.isCredentialFileExist = testCheckRole.Result.Value.isCredentialsFound;
                                     swVersion = testCheckRole.Result.Value.peerReviewRoleResponse;
                                     isRoleFound = true;
                                     break;
                                 }
                             }
+
+
                         }
 
                     }
@@ -157,7 +152,8 @@ namespace PeerReviewClient
                         return;
                     }
 
-                    if (swVersion == null) {
+                    if (swVersion == null)
+                    {
                         Console.WriteLine("Errore nel controllo del ruolo");
                         return;
                     }
@@ -182,7 +178,7 @@ namespace PeerReviewClient
                         client = client,
                         courseId = int.Parse(credentials.courseID),
                         localization = localization,
-                        saveCredentials = isCredentialsFound,
+                        saveCredentials = credentials.isCredentialFileExist,
                         token = guidToken
                     };
 
@@ -215,9 +211,45 @@ namespace PeerReviewClient
             Console.WriteLine("Press any key to exit");
             var y = Console.ReadKey();
 
-            
+
         }
+
+        private static bool IsDebugMode(string[] args)
+        {
+            var debugMode = false;
+
+            if (args.Length > 0 && args[0] == "debug") { debugMode = true; }
+            if (Debugger.IsAttached == true) { debugMode = true; }
+            if (debugMode == true)
+            {
+                Console.WriteLine("Debug mode attivo");
+            }
+
+            return debugMode;
+        }
+
         public static Credentials GetCredentials()
+        {
+
+            var loginManager = new LoginManager();
+            var credentials = LoginManager.GetCredentialFromFile(filePath);
+            var isCredentialsFound = credentials != null;
+
+            if (credentials == null)
+            {
+                // File non trovato. Chiedo tramite console
+                credentials = GetCredentialsFromConsole();
+            }
+            else
+            {
+                credentials.isCredentialFileExist = true;
+            }
+
+            return credentials;
+
+        }
+
+        public static Credentials GetCredentialsFromConsole()
         {
             string mail;
             string password;
@@ -296,10 +328,15 @@ namespace PeerReviewClient
             return guidToken;
         }
 
-        private static void DeleteAsyncTask(CancellationTokenSource cts, Task loadingTask)
+        private static void DeleteAnimationTask(CancellationTokenSource cts, Task? loadingTask)
         {
             // Cancella il finto task di caricamento se l'operazione è completa prima dei x secondi
             cts.Cancel();
+
+            if (loadingTask == null)
+            {
+                return;
+            }
 
             // Aspetta che il task di caricamento termini (se non già terminato)
             try
@@ -366,10 +403,12 @@ namespace PeerReviewClient
             }
         }
 
-        private static async Task<OperationResult<CheckRoleResult>> CheckRole(Credentials? credentials, bool isCredentialsFound, HttpClient client)
+        private static async Task<OperationResult<CheckRoleResult>> CheckRole(Credentials credentials, HttpClient client)
         {
 
             var result = new CheckRoleResult();
+
+            bool isCredentialsFound = credentials.isCredentialFileExist;
 
             // Check role
             var role = new PeerReviewRoleJsonData()

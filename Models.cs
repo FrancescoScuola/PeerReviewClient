@@ -41,6 +41,8 @@
         public string password { get; set; }
         public string courseID { get; set; }
         public PeerReviewRole role { get; set; }
+        public bool isCredentialFileExist { get; set; }
+
     }
 
     // Classe per inizializiare il menu

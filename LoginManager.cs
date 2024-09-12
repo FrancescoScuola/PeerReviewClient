@@ -92,7 +92,7 @@ namespace PeerReviewClient
             return false;
         }
 
-        public static Credentials GetLoginInfo(string filePath = "loginInfo.json")
+        public static Credentials GetCredentialFromFile(string filePath = "loginInfo.json")
         {
             if (!File.Exists(filePath))
             {

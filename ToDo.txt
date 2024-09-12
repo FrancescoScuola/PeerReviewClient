@@ -4,12 +4,23 @@
 - Il ragazzo può vedere i feedback che ha dato						NO
 - Il ragazzo può iscriversi ad un corso								x
 - Il ragazzo assente vedo lo stesso che deve fare delle domande		x
-
+- Il ragazzo può vedere i voti che ha preso dal docente				NO
+- Il ragazzo che non risponde prende un penalità					NO
+- Il ragazzo che non da feedback prende un penalità					NO
 
 Insegnante:
 - il docente può vedere la media della classe                       NO
 - il docente può vedere la media di ogni studente                   NO
 - il docente può vedere le domande che ha fatto ogni studente       NO
+- il docente assegna un voto ad ogni domanda                        NO
+- il docente assegna un voto ad un feedback                         NO
+- il docente puo vedere solo i suoi voti							NO
 
 
-Cancella le credenziali, lo tolgo dal menu
+Miscele:
+- Cancella le credenziali, lo tolgo dal menu                        x
+- Stringhe dal codice alla parte di traduzione                      x
+- Refactoring parte iniziale									    x
+- Salvare la lingua scelta in un file							    x
+- Creare un file di configurazione								    x
+

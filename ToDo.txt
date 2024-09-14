@@ -19,11 +19,12 @@ Insegnante:
 - il docente puo vedere solo i suoi voti							NO
 
 
-Miscele:
+Miscellaneous:
 - Cancella le credenziali, lo tolgo dal menu                        x
 - Stringhe dal codice alla parte di traduzione                      x
 - Refactoring parte iniziale									    x
 - Salvare la lingua scelta in un file							    x
 - Creare un file di configurazione								    x
 - Spostare le scritte fuori dai metodi							    x
+- Stampare all'inizio nome e id del corso							x	
 

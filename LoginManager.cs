@@ -24,7 +24,7 @@ namespace PeerReviewClient
             var loginResultData = new LoginResultData
             {
                 guidToken = new Guid(),
-                swVersion = null
+                swVersion = null,
             };
 
             for (var countAttempt = 0; countAttempt < _maxAttempts; countAttempt++)
@@ -82,6 +82,7 @@ namespace PeerReviewClient
                     {
                         _credentials.isCredentialFileExist = testCheckRole.Result.Value.isCredentialsFound;
                         loginResultData.swVersion = testCheckRole.Result.Value.peerReviewRoleResponse;
+                        loginResultData.CourseName = testCheckRole.Result.Value.peerReviewRoleResponse.class_name;
                         isRoleFound = true;
                         break;
                     }
@@ -111,7 +112,7 @@ namespace PeerReviewClient
             {
                 try
                 {
-                    for (int i = 0; i < 10; i++)
+                    for (int i = 0; i < 20; i++)
                     {
                         if (cts.Token.IsCancellationRequested) break;
                         if (i == 0)
@@ -285,7 +286,7 @@ namespace PeerReviewClient
             var data = new StringContent(json, Encoding.UTF8, "application/json");
 
             // Invia la richiesta di autenticazione
-            var roleResponse = await client.PostAsync(ApiHelper.PostPeerReviewRole(), data);
+            var roleResponse = await client.PostAsync(ApiHelper.PostRole(), data);
             return roleResponse;
         }
 
@@ -295,7 +296,7 @@ namespace PeerReviewClient
             var data = new StringContent(json, Encoding.UTF8, "application/json");
 
             // Invia la richiesta di autenticazione
-            var roleResponse = await client.PostAsync(ApiHelper.PostPeerReviewEnroll(), data);
+            var roleResponse = await client.PostAsync(ApiHelper.PostEnroll(), data);
             return roleResponse;
         }
 

@@ -8,8 +8,8 @@ namespace PeerReviewClient
     internal class Program
     {
         public static string filePath = "loginInfo.json";
-        public static string sw_version = "0.5.0";
-        public static string api_version = "0.5.0";
+        public static string sw_version = "0.6.0";
+        public static string api_version = "0.6.0";
         // Sito per l'api
         public static int WEBSITE = 8;
 
@@ -51,6 +51,10 @@ namespace PeerReviewClient
                         return;
                     }
 
+                    Console.WriteLine();
+                    AnsiConsole.Markup($"[bold darkgoldenrod]-.-.-.-.-.-.-.-.- Corso {credentials.courseID + " - " + loginResult.Value.CourseName} -.-.-.-.-.-.-.-.-[/]");
+                    Console.WriteLine();
+
                     // Controllo versione software
                     var checkSwVersion = CheckVersion(loginResult.Value.swVersion.software_version);
                     AnsiConsole.MarkupLine(checkSwVersion.Message);
@@ -66,7 +70,7 @@ namespace PeerReviewClient
                         localization = localization,
                         saveCredentials = credentials.isCredentialFileExist,
                         token = loginResult.Value.guidToken,
-                        role = credentials.role 
+                        role = credentials.role
                     };
 
                     IMenu menu = CreateMenu(menuOptions);

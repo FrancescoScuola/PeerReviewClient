@@ -42,13 +42,13 @@
         public string courseID { get; set; }
         public PeerReviewRole role { get; set; }
         public bool isCredentialFileExist { get; set; }
-
     }
 
     public class LoginResultData
     {
         public Guid guidToken { get; set; } = new Guid();
-        public PeerReviewRoleResponseJsonData swVersion { get; set; } = new PeerReviewRoleResponseJsonData();
+        public PeerReviewRoleResponseJsonData swVersion { get; set; } = new PeerReviewRoleResponseJsonData();        
+        public string CourseName { get; set; }
     }
 
     // Classe per inizializiare il menu
@@ -60,17 +60,13 @@
         public HttpClient client { get; set; }
         public bool saveCredentials { get; set; }
         public Localization localization { get; set; }
+    }
 
-
-        //public MenuInitOptionsData(int courseId, Guid token, PeerReviewRole role, HttpClient client, bool saveCredentials, Localization localization)
-        //{
-        //    this.courseId = courseId;
-        //    this.token = token;
-        //    this.role = role;
-        //    this.client = client;
-        //    this.saveCredentials = saveCredentials;
-        //    this.localization = localization;
-        //}
+    public class UserResponse
+    {
+        public string Response { get; set; }
+        public bool IsFilePresent { get; set; }
+        public string FilePath { get; set; }
     }
 
     public class MenuOption
@@ -81,7 +77,6 @@
             Id = id;
             Action = action;
         }
-
         public string Description { get; set; }
         public int Id { get; set; }
         public Func<Task> Action { get; set; }
@@ -245,6 +240,21 @@
         public int website { get; set; }
         public int lesson_id { get; set; }
         public int question_id { get; set; }
+        public string question_text { get; set; }
+        public Guid token { get; set; }
+        public PeerReviewRole role { get; set; }
+        public int is_chat_gpt { get; set; }
+        public string file_path { get; set; }
+    }
+
+    public class QuestionToMarkTeacher
+    {
+
+        public int answer_id { get; set; }
+        public string answer_text { get; set; }
+        public float? average_grade { get; set; }
+        public int? total_grades { get; set; }
+        public float? feedback_gpt { get; set; }
     }
 
     #endregion

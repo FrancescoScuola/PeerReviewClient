@@ -64,7 +64,7 @@ namespace PeerReviewClient
             if (_isSummaryValid == false)
             {
                 PrintCacheMiss();
-                var ulr = ApiHelper.GetPeerReviewStudentLessonsSummary(this.token, this.courseId, this.role);
+                var ulr = ApiHelper.GetStudentLessonsSummary(this.token, this.courseId, this.role);
                 var result = await GetFromApi(ulr);
                 if (result.IsSuccessStatusCode)
                 {
@@ -93,7 +93,7 @@ namespace PeerReviewClient
             if (_isToDoQuestionsValid == false)
             {
                 PrintCacheMiss();
-                var ulr = ApiHelper.GetPeerReviewToDoQuestions(this.token, this.courseId, this.role);
+                var ulr = ApiHelper.GetStudentToDoQuestions(this.token, this.courseId, this.role);
                 var result = await GetFromApi(ulr);
                 if (result.IsSuccessStatusCode)
                 {
@@ -127,7 +127,7 @@ namespace PeerReviewClient
         public async Task<OperationResult<PeerReviewAnswerForFeedbackData>> GetFeedbackAsync(int lessonID)
         {
 
-            var ulr = ApiHelper.GetPeerReviewFeedback(this.token, lessonID, this.role);
+            var ulr = ApiHelper.GetFeedback(this.token, lessonID, this.role);
             var result = await GetFromApi(ulr);
             if (result.IsSuccessStatusCode)
             {
@@ -154,7 +154,7 @@ namespace PeerReviewClient
 
         internal async Task<OperationResult<List<PeerReviewAnswerData>>> GetGradesAsync(int lesson_id)
         {
-            var ulr = ApiHelper.GetPeerReviewAnswerStudentsDone(this.token, lesson_id, this.role);
+            var ulr = ApiHelper.GetAnswerStudentsDone(this.token, lesson_id, this.role);
             var result = await GetFromApi(ulr);
             if (result.IsSuccessStatusCode)
             {
@@ -182,8 +182,13 @@ namespace PeerReviewClient
         
         private PeerReviewClassData _classData = null;
 
+        private List<QuestionToMarkTeacher> _questionToMarkTeachers = null;
+
         private bool _isSummaryValid { get => _summary != null; }
         private bool _isClassDataValid { get => _classData != null; }
+
+        private bool _isQuestionToMarkTeachersValid { get => _questionToMarkTeachers != null; }
+
 
         public void ResetCache()
         {
@@ -201,7 +206,7 @@ namespace PeerReviewClient
             if (_isSummaryValid == false)
             {
                 PrintCacheMiss();
-                var ulr = ApiHelper.GetPeerReviewTeacherLessonsSummary(this.token, this.courseId, this.role);
+                var ulr = ApiHelper.GetTeacherLessonsSummary(this.token, this.courseId, this.role);
                 var result = await GetFromApi(ulr);
                 if (result.IsSuccessStatusCode)
                 {
@@ -225,13 +230,42 @@ namespace PeerReviewClient
 
         }
 
+        public async Task<OperationResult<List<QuestionToMarkTeacher>>> GetQuestionsToMark(int lessonId)
+        {
+            if (_isQuestionToMarkTeachersValid == false)
+            {
+                PrintCacheMiss();
+                var ulr = ApiHelper.GetTeacherQuestionsToMark(this.token, lessonId, this.role);
+                var result = await GetFromApi(ulr);
+                if (result.IsSuccessStatusCode)
+                {
+                    var response = await result.Content.ReadAsStringAsync();
+                    // convert response to PeerReviewClassData
+                    var questionToMarkTeachers = JsonConvert.DeserializeObject<List<QuestionToMarkTeacher>>(response);
+                    if (questionToMarkTeachers != null)
+                    {
+                        this._questionToMarkTeachers = questionToMarkTeachers;
+                        return OperationResult<List<QuestionToMarkTeacher>>.Ok(questionToMarkTeachers);
+                    }
+                }
+            }
+            else
+            {
+                PrintCacheHit();
+                return OperationResult<List<QuestionToMarkTeacher>>.Ok(this._questionToMarkTeachers);
+            }
+
+            return OperationResult<List<QuestionToMarkTeacher>>.Fail("Error getting class data.");
+
+        }
+
 
         public async Task<OperationResult<PeerReviewClassData>> GetPeerReviewClassDataAsync()
         {
             if (_isClassDataValid == false)
             {
                 PrintCacheMiss();
-                var ulr = ApiHelper.GetPeerReviewClass(this.token, this.courseId, this.role);
+                var ulr = ApiHelper.GetClass(this.token, this.courseId, this.role);
                 var result = await GetFromApi(ulr);
                 if (result.IsSuccessStatusCode)
                 {
@@ -257,7 +291,7 @@ namespace PeerReviewClient
 
         public async Task<OperationResult<IEnumerable<PeerReviewUserData>>> GetPeerReviewStudentsAsync()
         {
-            var url = ApiHelper.GetPeerReviewStudents(this.token, this.courseId, this.role);
+            var url = ApiHelper.GetStudents(this.token, this.courseId, this.role);
             var result = await GetFromApi(url);
             if (result.IsSuccessStatusCode)
             {

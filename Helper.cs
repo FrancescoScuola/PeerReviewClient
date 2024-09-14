@@ -136,7 +136,7 @@ namespace PeerReviewClient
                     ? Markup.Escape(_localization.GetText(TranslateKey.ACTIVE_LESSON_LABEL))
                     : "";
 
-                var secondDeadlineLabel = timeInterval == TimeInterval.BetweenDeadlines 
+                var secondDeadlineLabel = timeInterval == TimeInterval.BetweenDeadlines
                     ? Markup.Escape(_localization.GetText(TranslateKey.ACTIVE_FEEDBACK_LABEL))
                     : "";
 
@@ -271,6 +271,31 @@ namespace PeerReviewClient
             AnsiConsole.Write(table);
             Console.WriteLine();
         }
+
+        public void PrintQuestionsToMark(List<QuestionToMarkTeacher> list)
+        {
+            var table = new Table();
+            table.Border = TableBorder.Horizontal;
+            table.AddColumns("ID", "answer_text", "average grade", "total grades", "feedback gpt");
+            foreach (var question in list)
+            {
+
+                var answerText = "-";
+                if (question.answer_text != null) { 
+                    answerText = question.answer_text.Length < 50 ? question.answer_text : question?.answer_text.Substring(0,49) + " ...";
+                }
+                var avarageGrade = question?.average_grade == null ? "-" : question?.average_grade.ToString();
+                var totalGrades = question?.total_grades == null ? "-" : question?.total_grades.ToString();
+                var feedbackGpt = question?.feedback_gpt == null ? "-" : question?.feedback_gpt.ToString();
+                table.AddRow(question.answer_id.ToString(), answerText, avarageGrade, totalGrades, feedbackGpt);
+            }
+            table.Expand();
+            table.Columns[0].Centered();
+            AnsiConsole.Write(table);
+            Console.WriteLine();
+        }
+
+
     }
     public static class Helper
     {
@@ -302,42 +327,48 @@ namespace PeerReviewClient
     /// </summary>
     public static class ApiHelper
     {
-        public static string GetApiBase(bool debugMode = false) { 
-        
-            if(debugMode)
+        public static string GetApiBase(bool debugMode = false)
+        {
+
+            if (debugMode)
                 return "https://localhost:44391/api/v1/";
             else
                 return "https://www.apibaobab.com/api/v1/";
 
         }
 
-        public static string GetPeerReviewClass(Guid guid, int classId, PeerReviewRole user_type, int website = 8)
+        public static string GetClass(Guid guid, int classId, PeerReviewRole user_type, int website = 8)
         {
             return "PeerReview/Class/" + website + "/" + (int)user_type + "/" + classId + "/" + guid.ToString();
         }
 
-        internal static string GetPeerReviewStudents(Guid token, int courseId, PeerReviewRole role, int website = 8)
+        internal static string GetStudents(Guid token, int courseId, PeerReviewRole role, int website = 8)
         {
 
             return "PeerReview/Students/" + website + "/" + (int)role + "/" + courseId + "/" + token.ToString();
         }
 
-        internal static string GetPeerReviewToDoQuestions(Guid token, int courseId, PeerReviewRole role, int website = 8)
+        internal static string GetStudentToDoQuestions(Guid token, int courseId, PeerReviewRole role, int website = 8)
         {
-            return "PeerReview/Students/ToDoQuestions/" + website + "/" + (int)role + "/" + courseId + "/" + token.ToString();
+            return "PeerReview/Question/Students/ToDoQuestions/" + website + "/" + (int)role + "/" + courseId + "/" + token.ToString();
         }
 
-        internal static string GetPeerReviewFeedback(Guid token, int lesson_id, PeerReviewRole role, int website = 8)
+        internal static string GetTeacherQuestionsToMark(Guid token, int courseId, PeerReviewRole role, int website = 8)
+        {
+            return "PeerReview/Question/Teacher/QuestionsToMark/" + website + "/" + (int)role + "/" + courseId + "/" + token.ToString();
+        }
+
+        internal static string GetFeedback(Guid token, int lesson_id, PeerReviewRole role, int website = 8)
         {
             return "PeerReview/Feedback/" + website + "/" + (int)role + "/" + lesson_id + "/" + token.ToString();
         }
 
-        internal static string PostPeerReviewFeedback()
+        internal static string PostFeedback()
         {
             return "PeerReview/Feedback";
         }
 
-        internal static string PostPeerReviewRole()
+        internal static string PostRole()
         {
             return "PeerReview/Role";
         }
@@ -347,32 +378,32 @@ namespace PeerReviewClient
             return "Login";
         }
 
-        internal static string GetPeerReviewStudentLessonsSummary(Guid token, int courseId, PeerReviewRole role, int website = 8)
+        internal static string GetStudentLessonsSummary(Guid token, int courseId, PeerReviewRole role, int website = 8)
         {
             return "PeerReview/Lessons/Summary/Student/" + website + "/" + (int)role + "/" + courseId + "/" + token.ToString();
         }
 
-        internal static string GetPeerReviewTeacherLessonsSummary(Guid token, int courseId, PeerReviewRole role, int website = 8)
+        internal static string GetTeacherLessonsSummary(Guid token, int courseId, PeerReviewRole role, int website = 8)
         {
             return "PeerReview/Lessons/Summary/Teacher/" + website + "/" + (int)role + "/" + courseId + "/" + token.ToString();
         }
 
-        internal static string GetPeerReviewAnswerStudentsDone(Guid token, int lesson_id, PeerReviewRole role, int website = 8)
+        internal static string GetAnswerStudentsDone(Guid token, int lesson_id, PeerReviewRole role, int website = 8)
         {
             return "PeerReview/Answer/Lesson/" + website + "/" + (int)role + "/" + lesson_id + "/" + token.ToString();
         }
 
-        internal static string PostPeerReviewEnroll()
+        internal static string PostEnroll()
         {
             return "PeerReview/Enroll";
         }
 
-        internal static string PostPeerReviewLessons()
+        internal static string PostLessons()
         {
             return "PeerReview/Lessons";
         }
 
-        internal static string PostPeerReviewQuestion()
+        internal static string PostQuestion()
         {
             return "PeerReview/Question";
         }

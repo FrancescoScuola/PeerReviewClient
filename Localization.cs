@@ -22,6 +22,7 @@
         PRESENT,
         ADD_LESSON,
         HOW_DO_GRADE,
+        MARK_QUESTION,
     }
 
     public class Localization
@@ -67,6 +68,7 @@
             dictionary.Add(TranslateKey.PRESENT, "Present");
             dictionary.Add(TranslateKey.ADD_LESSON, "Add Lesson");
             dictionary.Add(TranslateKey.HOW_DO_GRADE, "How do grade?");
+            dictionary.Add(TranslateKey.MARK_QUESTION, "Mark question");
 
             return dictionary;
         }
@@ -93,6 +95,7 @@
             dictionary.Add(TranslateKey.PRESENT, "Presente");
             dictionary.Add(TranslateKey.ADD_LESSON, "Aggiungi lezione");
             dictionary.Add(TranslateKey.HOW_DO_GRADE, "Come valutare?");
+            dictionary.Add(TranslateKey.MARK_QUESTION, "Correggi domanda");
 
 
             return dictionary;

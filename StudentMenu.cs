@@ -7,11 +7,11 @@ namespace PeerReviewClient
 {
     public class StudentMenu : BaseMenu
     {
-        public new StudentLocalCache localCache { get; set; }
+        private StudentLocalCache _localCache { get; set; }
 
         public StudentMenu(MenuInitOptionsData options) : base((options))
         {
-            this.localCache = new StudentLocalCache(courseId, token, role, options.client);
+            this._localCache = new StudentLocalCache(courseId, token, role, options.client);
         }
 
         public override List<MenuOption> GetMenuOptions()
@@ -69,7 +69,7 @@ namespace PeerReviewClient
         {
             DisplayTitle("Showing Lessons");
 
-            var fetchData = await localCache.GetStudentLessonSummaryDataAsync();
+            var fetchData = await _localCache.GetStudentLessonSummaryDataAsync();
 
             if (fetchData.Result == ExecutionStatus.Done)
             {
@@ -106,74 +106,16 @@ namespace PeerReviewClient
                 }
             }
 
-            var fetchResult = await localCache.GetFeedbackAsync(lessonId);
+            var fetchResult = await _localCache.GetFeedbackAsync(lessonId);
             if (fetchResult.Result == ExecutionStatus.Done)
             {
-
                 var feedback = fetchResult.Value;
                 if (feedback != null)
                 {
-                    DisplayMessage(" ");
-                    DisplayMessage("Question: " + feedback.question);
-                    DisplayMessage("Answer: " + feedback.answer_text);
-                    DisplayMessage(" ");
-                    var feedbackText = PromptForInput("Your Feedback: ");
-
-                    DisplayMessage(" ");
-                    var grade = -1;
-                    while (grade > 8 || grade < 4)
+                    PeerReviewFeedbackDataJson feedbackData = GetFeedback(lessonId, feedback);
+                    if (SentFeedback(_localCache,feedbackData))
                     {
-                        var temp = PromptForInlineInput("Grade (4-8): ");
-                        if (int.TryParse(temp, out grade) == false)
-                        {
-                            DisplayMessage("Invalid input. Please try again.");
-                        }
-                    }
-
-                    DisplayMessage(" ");
-                    var missingElements = PromptForInput("Missing Elements: ");
-                    DisplayMessage(" ");
-
-
-                    DisplayMessage(" ");
-                    // Chiedi se l'utente a cui sto facendo la peer review pensa che l'utente abbia usato GPT
-                    var isChatGpt = 0;
-                    var isChatGptInput = PromptForInlineInput("Did the student use GPT? (y/n): ");
-                    if (isChatGptInput.ToLower() == "y")
-                    {
-                        isChatGpt = 1;
-                    }
-
-                    var feedbackData = new PeerReviewFeedbackDataJson()
-                    {
-                        lesson_id = lessonId,
-                        id = feedback.id,
-                        feedback_text = feedbackText,
-                        grade = grade,
-                        missing_elements = missingElements,
-                        role = this.role,
-                        token = this.token,
-                        website = 8,
-                        is_chat_gpt = isChatGpt
-                    };
-
-                    var confermation = PromptForInlineInput("Are you sure you want to submit the feedback? (y/n): ");
-                    if (confermation.ToLower() == "y")
-                    {
-                        var postResult = localCache.Post(feedbackData, ApiHelper.PostFeedback());
-                        if (postResult)
-                        {
-                            DisplayMessage("Feedback submitted successfully.");
-                            localCache.ResetCache();
-                        }
-                        else
-                        {
-                            DisplayMessage("Error submitting feedback.");
-                        }
-                    }
-                    else
-                    {
-                        DisplayMessage("Feedback not submitted.");
+                        _localCache.ResetCache();
                     }
                 }
                 else
@@ -191,7 +133,7 @@ namespace PeerReviewClient
         {
             DisplayTitle("Submitting Assignment");
             int lessonID = -1;
-            var fetchData = await localCache.GetToDoQuestionsAsync();
+            var fetchData = await _localCache.GetToDoQuestionsAsync();
             if (fetchData.Result == ExecutionStatus.Done)
             {
                 var todoQuestions = fetchData.Value;
@@ -249,7 +191,7 @@ namespace PeerReviewClient
                                 if (submitAnswareResult)
                                 {
                                     DisplayMessage("Answer submitted successfully.");
-                                    localCache.ResetCache();
+                                    _localCache.ResetCache();
                                 }
                                 else
                                 {
@@ -355,8 +297,6 @@ namespace PeerReviewClient
             return false;
 
         }
-
-
         private string GetAnsware()
         {
             while (true)
@@ -418,7 +358,7 @@ namespace PeerReviewClient
                 }
                 else
                 {
-                    var summary = localCache.GetStudentLessonSummaryDataAsync().Result.Value;
+                    var summary = _localCache.GetStudentLessonSummaryDataAsync().Result.Value;
                     var lesson = summary.FirstOrDefault(l => l.id == lessonId);
                     if (lesson != null)
                     {
@@ -432,7 +372,7 @@ namespace PeerReviewClient
                 }
             }
 
-            var fetchData = await localCache.GetGradesAsync(lessonId);
+            var fetchData = await _localCache.GetGradesAsync(lessonId);
             if (fetchData.Result == ExecutionStatus.Done)
             {
                 var list = fetchData.Value;
@@ -453,7 +393,6 @@ namespace PeerReviewClient
 
 
         }
-
         public static UserResponse GetUserResponse()
         {
             Console.WriteLine("Scrivi la tua risposta (puoi inserire anche un file path):");

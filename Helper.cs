@@ -223,7 +223,7 @@ namespace PeerReviewClient
                 table.Border = TableBorder.Horizontal;
                 table.AddColumns("#", "feedback", "missing elements", "grade");
                 var i = 0;
-                decimal avarage = 0;
+                float avarage = 0;
                 foreach (var feedback in item.feedbacks)
                 {
                     feedback.feedback_text = feedback.feedback_text.Replace("\n", " ");
@@ -272,7 +272,7 @@ namespace PeerReviewClient
             Console.WriteLine();
         }
 
-        public void PrintQuestionsToMark(List<QuestionToMarkTeacher> list)
+        public void PrintQuestionsToMark(List<QuestionToMarkTeacherData> list)
         {
             var table = new Table();
             table.Border = TableBorder.Horizontal;

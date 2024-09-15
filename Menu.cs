@@ -18,7 +18,6 @@ namespace PeerReviewClient
         protected HttpClient Client;
         protected bool saveCredentials { get; set; }
         protected PeerReviewRole role { get; set; }
-        public LocalCache localCache { get; set; } = null;
 
         // TODO Prenderlo dall'api una volta fatto il login
         public AssignQuestionsToStudentsOptions studentsOptions { get; set; } = new AssignQuestionsToStudentsOptions();
@@ -133,10 +132,83 @@ namespace PeerReviewClient
             }
         }
 
+        public PeerReviewFeedbackDataJson GetFeedback(int lessonId, PeerReviewAnswerForFeedbackData answerData)
+        {
+            DisplayMessage(" ");
+            DisplayMessage("Question: " + answerData.question);
+            DisplayMessage("Answer: " + answerData.answer_text);
+            DisplayMessage(" ");
+            var feedbackText = PromptForInput("Your Feedback: ");
+
+            DisplayMessage(" ");
+            var grade = -1;
+            while (grade > 8 || grade < 4)
+            {
+                var temp = PromptForInlineInput("Grade (4-8): ");
+                if (int.TryParse(temp, out grade) == false)
+                {
+                    DisplayMessage("Invalid input. Please try again.");
+                }
+            }
+
+            DisplayMessage(" ");
+            var missingElements = PromptForInput("Missing Elements: ");
+            DisplayMessage(" ");
+
+
+            DisplayMessage(" ");
+            // Chiedi se l'utente a cui sto facendo la peer review pensa che l'utente abbia usato GPT
+            var isChatGpt = 0;
+            var isChatGptInput = PromptForInlineInput("Did the student use GPT? (y/n): ");
+            if (isChatGptInput.ToLower() == "y")
+            {
+                isChatGpt = 1;
+            }
+
+            var feedbackData = new PeerReviewFeedbackDataJson()
+            {
+                lesson_id = lessonId,
+                id = answerData.id,
+                feedback_text = feedbackText,
+                grade = grade,
+                missing_elements = missingElements,
+                role = this.role,
+                token = this.token,
+                website = 8,
+                is_chat_gpt = isChatGpt
+            };
+            return feedbackData;
+        }
+
+        public bool SentFeedback(ILocalCache localCache, PeerReviewFeedbackDataJson feedbackData)
+        {
+            var confermation = PromptForInlineInput("Are you sure you want to submit the feedback? (y/n): ");
+            if (confermation.ToLower() == "y")
+            {
+                var postResult = localCache.Post(feedbackData, ApiHelper.PostFeedback());
+                if (postResult)
+                {
+                    DisplayMessage("Feedback submitted successfully.");
+                    return true;
+                }
+                else
+                {
+                    DisplayMessage("Error submitting feedback.");
+                }
+            }
+            else
+            {
+                DisplayMessage("Feedback not submitted.");
+            }
+
+
+            return false;
+        }
+
     }
 
-    
-   
+
+
 
 }
 

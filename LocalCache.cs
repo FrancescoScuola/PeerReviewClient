@@ -4,11 +4,17 @@ using System.Text;
 
 namespace PeerReviewClient
 {
-    public class LocalCache
+    public interface ILocalCache
+    {
+        Task<HttpResponseMessage> GetFromApi(string relativePath);
+        bool Post(object item, string url);
+    }
+
+    public class LocalCache : ILocalCache
     {
 
         public static void PrintCacheMiss() { Console.WriteLine(); AnsiConsole.MarkupLine($"[lightslategrey]Cache Miss[/]"); }
-        public static void PrintCacheHit()  { Console.WriteLine(); AnsiConsole.MarkupLine($"[lightslateblue]Cache Hit[/]"); }
+        public static void PrintCacheHit() { Console.WriteLine(); AnsiConsole.MarkupLine($"[lightslateblue]Cache Hit[/]"); }
 
         protected int courseId { get; set; }
         protected Guid token { get; set; }
@@ -182,7 +188,7 @@ namespace PeerReviewClient
         
         private PeerReviewClassData _classData = null;
 
-        private List<QuestionToMarkTeacher> _questionToMarkTeachers = null;
+        private List<QuestionToMarkTeacherData> _questionToMarkTeachers = null;
 
         private bool _isSummaryValid { get => _summary != null; }
         private bool _isClassDataValid { get => _classData != null; }
@@ -230,7 +236,7 @@ namespace PeerReviewClient
 
         }
 
-        public async Task<OperationResult<List<QuestionToMarkTeacher>>> GetQuestionsToMark(int lessonId)
+        public async Task<OperationResult<List<QuestionToMarkTeacherData>>> GetQuestionsToMark(int lessonId)
         {
             if (_isQuestionToMarkTeachersValid == false)
             {
@@ -241,21 +247,21 @@ namespace PeerReviewClient
                 {
                     var response = await result.Content.ReadAsStringAsync();
                     // convert response to PeerReviewClassData
-                    var questionToMarkTeachers = JsonConvert.DeserializeObject<List<QuestionToMarkTeacher>>(response);
+                    var questionToMarkTeachers = JsonConvert.DeserializeObject<List<QuestionToMarkTeacherData>>(response);
                     if (questionToMarkTeachers != null)
                     {
                         this._questionToMarkTeachers = questionToMarkTeachers;
-                        return OperationResult<List<QuestionToMarkTeacher>>.Ok(questionToMarkTeachers);
+                        return OperationResult<List<QuestionToMarkTeacherData>>.Ok(questionToMarkTeachers);
                     }
                 }
             }
             else
             {
                 PrintCacheHit();
-                return OperationResult<List<QuestionToMarkTeacher>>.Ok(this._questionToMarkTeachers);
+                return OperationResult<List<QuestionToMarkTeacherData>>.Ok(this._questionToMarkTeachers);
             }
 
-            return OperationResult<List<QuestionToMarkTeacher>>.Fail("Error getting class data.");
+            return OperationResult<List<QuestionToMarkTeacherData>>.Fail("Error getting class data.");
 
         }
 

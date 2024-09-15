@@ -2,11 +2,11 @@
 {
     public class TeacherMenu : BaseMenu
     {
-        public new TeacherLocalCache localCache { get; set; }
+        private TeacherLocalCache _localCache { get; set; }
 
         public TeacherMenu(MenuInitOptionsData options) : base(options)
         {
-            this.localCache = new TeacherLocalCache(courseId, token, role, options.client);
+            this._localCache = new TeacherLocalCache(courseId, token, role, options.client);
         }
 
         public override List<MenuOption> GetMenuOptions()
@@ -29,7 +29,8 @@
         {
             DisplayTitle("Correggi una domanda");
                       
-            var lessonId = -1;            
+            var lessonId = -1;
+            PeerReviewLessonData lessonSelected = null;
             while (true)
             {
                 var tLessonID = PromptForInlineInput("Lesson id: ");
@@ -39,10 +40,11 @@
                     continue;
                 }
                 // Check if lesson exists
-                var fetchData = await localCache.GetPeerReviewClassDataAsync();
-                if (fetchData.Result == ExecutionStatus.Done)
+                var fetchLessonsData = await _localCache.GetPeerReviewClassDataAsync();
+                if (fetchLessonsData.Result == ExecutionStatus.Done)
                 {
-                    if (fetchData.Value.lessons.Any(l => l.id == lessonId))
+                    lessonSelected = fetchLessonsData.Value.lessons.FirstOrDefault(l => l.id == lessonId);
+                    if (lessonSelected != null)
                     {
                         break;
                     }
@@ -57,12 +59,44 @@
                 }
             }            
 
-            var fetchDataQuestionsToMark = await localCache.GetQuestionsToMark(lessonId);
+            var fetchDataQuestionsToMark = await _localCache.GetQuestionsToMark(lessonId);
             if (fetchDataQuestionsToMark.Result == ExecutionStatus.Done) {
                 var tableHelper = new TableHelper(this.studentsOptions, this.localization);
                 tableHelper.PrintQuestionsToMark(fetchDataQuestionsToMark.Value);
             }
-            
+
+            QuestionToMarkTeacherData questionToMark;
+            var questionIdToMark = -1;
+            while (true) {
+                var tQuestionID = PromptForInlineInput("Question id: ");
+                if (int.TryParse(tQuestionID, out questionIdToMark) == false)
+                {
+                    DisplayMessage("Invalid input. Please try again.");
+                    continue;
+                }
+
+                questionToMark = fetchDataQuestionsToMark.Value.FirstOrDefault(q => q.answer_id == questionIdToMark);
+                // Check if question exists
+                if (questionToMark != null)
+                {
+                    break;
+                }
+                else
+                {
+                    DisplayMessage("Question not found. Please try again.");
+                }
+            }
+
+            var feedbackData = GetFeedback(lessonId, new PeerReviewAnswerForFeedbackData() {
+                id = questionToMark.answer_id,
+                answer_text= questionToMark.answer_text,
+                question = questionToMark.question_text
+            });
+
+            if (SentFeedback(_localCache,feedbackData))
+            {
+                _localCache.ResetCache();
+            }
         }
 
         private async Task AddLesson()
@@ -98,12 +132,12 @@
                 website = 8,
             };
 
-            var postResult = localCache.Post(lessonData, ApiHelper.PostLessons());
+            var postResult = _localCache.Post(lessonData, ApiHelper.PostLessons());
 
             if (postResult)
             {
                 DisplayMessage("Lesson added successfully.");
-                localCache.ResetCache();
+                _localCache.ResetCache();
             }
             else
             {
@@ -116,7 +150,7 @@
         {
             DisplayTitle("Showing Lessons");
 
-            var fetchData = await localCache.GetTeacherLessonSummaryDataAsync();
+            var fetchData = await _localCache.GetTeacherLessonSummaryDataAsync();
 
             if (fetchData.Result == ExecutionStatus.Done)
             {
@@ -149,7 +183,7 @@
                 }
 
                 // Check if lesson exists
-                var fetchData = await localCache.GetPeerReviewClassDataAsync();
+                var fetchData = await _localCache.GetPeerReviewClassDataAsync();
                 if (fetchData.Result == ExecutionStatus.Done)
                 {
                     if (fetchData.Value.lessons.Any(l => l.id == lessonId))
@@ -168,7 +202,7 @@
             }
 
             DisplayMessage(localization.GetText(TranslateKey.INSERT_STUDENT_ABSENCE));
-            var fetchStudents = await localCache.GetPeerReviewStudentsAsync();
+            var fetchStudents = await _localCache.GetPeerReviewStudentsAsync();
             var listStudetsPresents = new List<int>();
             if (fetchStudents.Result == ExecutionStatus.Done)
             {
@@ -225,12 +259,12 @@
             };
 
             // Invia la richiesta di inserimento delle domande
-            var postResult = localCache.Post(itemToAdd, ApiHelper.PostQuestion());
+            var postResult = _localCache.Post(itemToAdd, ApiHelper.PostQuestion());
 
             if (postResult)
             {
                 DisplayMessage("Questions added successfully.");
-                localCache.ResetCache();
+                _localCache.ResetCache();
             }
             else
             {

@@ -247,14 +247,21 @@
         public string file_path { get; set; }
     }
 
-    public class QuestionToMarkTeacher
+    public class QuestionToMarkTeacherData
     {
-
         public int answer_id { get; set; }
+
         public string answer_text { get; set; }
+
         public float? average_grade { get; set; }
+
         public int? total_grades { get; set; }
+
         public float? feedback_gpt { get; set; }
+
+        public int question_id { get; set; }
+
+        public string question_text { get; set; }
     }
 
     #endregion
@@ -320,10 +327,12 @@
         public int id { get; set; }
         public int user_id { get; set; }
         public string feedback_text { get; set; }
-        public decimal grade { get; set; }
+        public float grade { get; set; }
         public string missing_elements { get; set; }
         public int answer_id { get; set; }
         public DateTime? created_at { get; set; }
+        public int is_chat_gpt { get; set; }
+        public PeerReviewRole feedback_role { get; set; }
     }
 
     public class PeerReviewFeedbackDataJson

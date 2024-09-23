@@ -306,8 +306,9 @@
     {
         public int id { get; set; }
         public string question_text { get; set; }
+        public string answer { get; set; }
         public DateTime? created_at { get; set; }
-        public ICollection<PeerReviewAnswerData> answers { get; set; }
+        public ICollection<PeerReviewAnswerData> StudentAnswers { get; set; } = new List<PeerReviewAnswerData>();
         public int class_id { get; set; }
     }
 

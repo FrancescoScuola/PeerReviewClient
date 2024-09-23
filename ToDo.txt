@@ -17,7 +17,7 @@ Insegnante:
 - il docente assegna un voto ad ogni domanda                        NO
 - il docente assegna un voto ad un feedback                         NO
 - il docente puo vedere solo i suoi voti							NO
-
+- il docente può aggiungere la risposta alla domanda				NO
 
 Miscellaneous:
 - Cancella le credenziali, lo tolgo dal menu                        x
@@ -27,4 +27,7 @@ Miscellaneous:
 - Creare un file di configurazione								    x
 - Spostare le scritte fuori dai metodi							    x
 - Stampare all'inizio nome e id del corso							x	
+- Controllo se il docente ha risposto alle domande					NO
+- Tutte le domande immesse vengono controllate per la presenza 
+di caratteri che identificano l'autore								NO
 

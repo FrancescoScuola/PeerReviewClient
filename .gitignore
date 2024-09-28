@@ -6,3 +6,5 @@
 /bin/Debug/net6.0
 /obj
 /bin/Debug/net8.0
+/bin/Release/net8.0
+/Properties/PublishProfiles

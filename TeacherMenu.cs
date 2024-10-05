@@ -17,8 +17,6 @@
             menu.Add(new MenuOption(this.localization.GetText(TranslateKey.ADD_QUESTIONS_TO_LESSON), 3, AddQuestions));
             menu.Add(new MenuOption(this.localization.GetText(TranslateKey.MARK_QUESTION), 4, MarkQuestion));
 
-
-
             if (this.saveCredentials)
                 menu.Add(new MenuOption(this.localization.GetText(TranslateKey.DELETE_CREDENTIALS), 11, DeleteCredentials));
             menu.Add(new MenuOption("Exit", 0, null));
@@ -33,8 +31,13 @@
             PeerReviewLessonData lessonSelected = null;
             while (true)
             {
-                var tLessonID = PromptForInlineInput("Lesson id: ");
-                if (int.TryParse(tLessonID, out lessonId) == false)
+                var tLessonIDResult = PromptForInlineInput("Lesson id: ");
+                if (tLessonIDResult.Result != ExecutionStatus.Done)
+                {
+                    return;
+                }
+
+                if (int.TryParse(tLessonIDResult.Value, out lessonId) == false)
                 {
                     DisplayMessage("Invalid input. Please try again.");
                     continue;
@@ -68,8 +71,13 @@
             QuestionToMarkTeacherData questionToMark;
             var questionIdToMark = -1;
             while (true) {
-                var tQuestionID = PromptForInlineInput("Question id: ");
-                if (int.TryParse(tQuestionID, out questionIdToMark) == false)
+                var tQuestionIDResult = PromptForInlineInput("Question id: ");
+                if (tQuestionIDResult.Result != ExecutionStatus.Done)
+                {
+                    return;
+                }
+
+                if (int.TryParse(tQuestionIDResult.Value, out questionIdToMark) == false)
                 {
                     DisplayMessage("Invalid input. Please try again.");
                     continue;
@@ -87,13 +95,20 @@
                 }
             }
 
-            var feedbackData = GetFeedback(lessonId, new PeerReviewAnswerForFeedbackData() {
+            var GetFeedbackData = GetFeedback(
+                lessonId, 
+                new PeerReviewAnswerForFeedbackData() {
                 id = questionToMark.answer_id,
                 answer_text= questionToMark.answer_text,
                 question = questionToMark.question_text
             });
 
-            if (SentFeedback(_localCache,feedbackData))
+            if(GetFeedbackData.Result != ExecutionStatus.Done)
+            {
+                return;
+            }
+
+            if (SentFeedback(_localCache,GetFeedbackData.Value))
             {
                 _localCache.ResetCache();
             }
@@ -104,13 +119,29 @@
             DisplayTitle("Adding Lesson");
 
             var title = PromptForInput("Title: ");
-            var fistDeadline = PromptForInput("First Deadline in h (48 default): ");
+            if(title.Result != ExecutionStatus.Done)
+            {
+                return;
+            }
+
+            var fistDeadlineResult = PromptForInput("First Deadline in h (48 default): ");
+            if(fistDeadlineResult.Result != ExecutionStatus.Done)
+            {
+                return;
+            }
+            var fistDeadline = fistDeadlineResult.Value;
             if (fistDeadline == string.Empty)
             {
                 fistDeadline = "48";
             }
 
-            var secondDeadline = PromptForInput("Second Deadline in h (120 default): ");
+            var secondDeadlineResult = PromptForInput("Second Deadline in h (120 default): ");
+            if (secondDeadlineResult.Result != ExecutionStatus.Done)
+            {
+                return;
+            }
+
+            var secondDeadline = secondDeadlineResult.Value;
             if (secondDeadline == string.Empty)
             {
                 secondDeadline = "120";
@@ -121,7 +152,7 @@
 
             var lessonData = new PeerReviewLessonJsonData()
             {
-                title = title,
+                title = title.Value,
                 content_html = "",
                 first_deadline = firstDeadlineDate,
                 second_deadline = secondDeadlineDate,
@@ -145,7 +176,6 @@
             }
 
         }
-
         private async Task ShowTeacherLessons()
         {
             DisplayTitle("Showing Lessons");
@@ -167,7 +197,6 @@
                 }
             }
         }
-
         private async Task AddQuestions()
         {
             DisplayTitle("Adding Questions");
@@ -176,7 +205,12 @@
             while (true)
             {
                 var tLessonID = PromptForInlineInput("Lesson id: ");
-                if (int.TryParse(tLessonID, out lessonId) == false)
+                if (tLessonID.Result != ExecutionStatus.Done)
+                {
+                    return;
+                }
+
+                if (int.TryParse(tLessonID.Value, out lessonId) == false)
                 {
                     DisplayMessage("Invalid input. Please try again.");
                     continue;
@@ -229,7 +263,12 @@
             while (true)
             {
                 var question = PromptForInlineInput($"Domanda {questions.Count + 1}: ");
-                if (string.IsNullOrEmpty(question))
+                if(question.Result != ExecutionStatus.Done)
+                {
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(question.Value))
                 {
                     if (questions.Count == 0)
                     {
@@ -242,7 +281,7 @@
                 }
                 else
                 {
-                    questions.Add(new PeerReviewQuestionJsonData() { question_text = question });
+                    questions.Add(new PeerReviewQuestionJsonData() { question_text = question.Value });
                 }
             }
 
@@ -317,13 +356,17 @@
             while (true)
             {
                 var userInput = Menu.PromptForInlineInput("Student ID: ");
-                if (string.IsNullOrEmpty(userInput))
+                if(userInput.Result != ExecutionStatus.Done)
+                {
+                    return OperationResult<IEnumerable<Student>>.Fail("EscapeClick");
+                }
+                if (string.IsNullOrEmpty(userInput.Value))
                 {
                     break;
                 }
 
                 var listId = new List<int>();
-                var listIdToConvert = userInput.Split(' ');
+                var listIdToConvert = userInput.Value.Split(' ');
 
                 foreach (var item in listIdToConvert)
                 {

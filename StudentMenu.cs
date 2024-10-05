@@ -95,7 +95,12 @@ namespace PeerReviewClient
             while (true)
             {
                 var temp = PromptForInlineInput("Lesson id: ");
-                if (int.TryParse(temp, out lessonId) == false)
+                if (temp.Result != ExecutionStatus.Done)
+                {
+                    return;
+                }
+
+                if (int.TryParse(temp.Value, out lessonId) == false)
                 {
                     DisplayMessage("Invalid input. Please try again.");
                     continue;
@@ -112,8 +117,13 @@ namespace PeerReviewClient
                 var feedback = fetchResult.Value;
                 if (feedback != null)
                 {
-                    PeerReviewFeedbackDataJson feedbackData = GetFeedback(lessonId, feedback);
-                    if (SentFeedback(_localCache,feedbackData))
+                    var feedbackData = GetFeedback(lessonId, feedback);
+                    if (feedbackData.Result != ExecutionStatus.Done)
+                    {
+                        return;
+                    }
+
+                    if (SentFeedback(_localCache, feedbackData.Value))
                     {
                         _localCache.ResetCache();
                     }
@@ -148,7 +158,13 @@ namespace PeerReviewClient
                         table.PrintQuestions(todoQuestions);
 
                         // Get questionID
-                        var questionId = GetQuestionId(todoQuestions);
+                        var questionIdResult = GetQuestionId(todoQuestions);
+                        if (questionIdResult.Result != ExecutionStatus.Done)
+                        {
+                            return;
+                        }
+
+                        var questionId = questionIdResult.Value;
                         if (questionId != -1)
                         {
 
@@ -170,13 +186,22 @@ namespace PeerReviewClient
 
                             // Ask if user used GPT
                             var isChatGptInput = PromptForInlineInput("Did you use GPT? (y/n): ");
-                            if (isChatGptInput.ToLower() == "y")
+                            if (isChatGptInput.Result != ExecutionStatus.Done)
+                            {
+                                return;
+                            }
+                            if (isChatGptInput.Value.ToLower() == "y")
                             {
                                 isChatGpt = 1;
                             }
 
                             var checkForConfermation = PromptForInlineInput("Vuoi confermare la risposta? (s/n): ");
-                            if (checkForConfermation.ToLower() == "s")
+                            if(checkForConfermation.Result != ExecutionStatus.Done)
+                            {
+                                return;
+                            }
+
+                            if (checkForConfermation.Value.ToLower() == "s")
                             {
                                 var submitAnswareResult = false;
                                 if (answerResult.IsFilePresent)
@@ -297,12 +322,16 @@ namespace PeerReviewClient
             return false;
 
         }
-        private string GetAnsware()
+        private OperationResult<string> GetAnsware()
         {
             while (true)
             {
                 var answer = PromptForInput("Answer: ");
-                if (string.IsNullOrEmpty(answer))
+                if (answer.Result != ExecutionStatus.Done)
+                {
+                    return OperationResult<string>.Fail("EscapeClick");
+                }
+                if (string.IsNullOrEmpty(answer.Value))
                 {
                     DisplayMessage("Answer cannot be empty. Please try again.");
                 }
@@ -313,19 +342,24 @@ namespace PeerReviewClient
             }
         }
 
-        private int GetQuestionId(List<PeerReviewLessonData> todoQuestions)
+        private OperationResult<int> GetQuestionId(List<PeerReviewLessonData> todoQuestions)
         {
             int questionId;
             while (true)
             {
                 var tQuestionID = PromptForInlineInput("Question id: ");
-                if (tQuestionID == string.Empty)
+                if (tQuestionID.Result != ExecutionStatus.Done)
+                {
+                    return OperationResult<int>.Fail("EscapeClick");
+                }
+
+                if (tQuestionID.Value == string.Empty)
                 {
                     questionId = -1;
                     break;
                 }
 
-                if (int.TryParse(tQuestionID, out questionId) == false)
+                if (int.TryParse(tQuestionID.Value, out questionId) == false)
                 {
                     DisplayMessage("Invalid input. Please try again.");
                     continue;
@@ -341,7 +375,7 @@ namespace PeerReviewClient
                 }
             }
 
-            return questionId;
+            return OperationResult<int>.Ok(questionId);
         }
         private async Task ViewGrades()
         {
@@ -350,8 +384,13 @@ namespace PeerReviewClient
             var lessonId = -1;
             while (true)
             {
-                var temp = PromptForInlineInput("Lesson id: ");
-                if (int.TryParse(temp, out lessonId) == false)
+                var lessonIDResult = PromptForInlineInput("Lesson id: ");
+                if (lessonIDResult.Result != ExecutionStatus.Done)
+                {
+                    return;
+                }
+
+                if (int.TryParse(lessonIDResult.Value, out lessonId) == false)
                 {
                     DisplayMessage("Invalid input. Please try again.");
                     continue;

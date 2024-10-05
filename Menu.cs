@@ -1,4 +1,5 @@
 ﻿using Spectre.Console;
+using System.Text;
 
 namespace PeerReviewClient
 {
@@ -6,7 +7,7 @@ namespace PeerReviewClient
     {
         List<MenuOption> GetMenuOptions();
         int GetMenuSelection();
-        string PromptForInput(string promptMessage);
+        OperationResult<string> PromptForInput(string promptMessage);
         void DisplayMessage(string message);
         Task ExecuteAction(int optionId);
     }
@@ -65,17 +66,74 @@ namespace PeerReviewClient
             }
         }
 
-        public virtual string PromptForInput(string promptMessage)
+        public virtual OperationResult<string> PromptForInput(string promptMessage)
         {
             Console.WriteLine(promptMessage);
-            return Console.ReadLine();
+            return GetUserInput();
         }
 
-        public virtual string PromptForInlineInput(string promptMessage)
+        public virtual OperationResult<string> PromptForInlineInput(string promptMessage)
         {
             Console.Write(promptMessage);
-            return Console.ReadLine();
+            return GetUserInput();
         }
+
+        public virtual OperationResult<int> PromptForIntInlineInput(string promptMessage)
+        {
+            Console.Write(promptMessage);
+            while (true)
+            {
+                var t = GetUserInput();
+                if(t.Result != ExecutionStatus.Done)
+                {
+                    return OperationResult<int>.Fail("EscapeClick");
+                }
+                var isValidInt = int.TryParse(t.Value, out int selection);
+                if (isValidInt)
+                {
+                    return OperationResult<int>.Ok(selection);
+                }
+                Console.WriteLine("Invalid selection. Please try again.");
+            }
+        }
+
+        private static OperationResult<string> GetUserInput()
+        {
+            var input = new StringBuilder();  // Usato per accumulare il testo inserito
+
+            while (true)
+            {
+                var key = Console.ReadKey(intercept: true);  // Legge un tasto senza mostrarlo a schermo
+
+                if (key.Key == ConsoleKey.Escape)
+                {
+                    Console.WriteLine(" ");
+                    Console.WriteLine(" ");
+                    AnsiConsole.MarkupLine($"[red]ABORT[/] - Esco al menu principale.");
+                    Console.WriteLine(" ");
+                    return OperationResult<string>.Fail("EscapeClick");
+                }
+                else if (key.Key == ConsoleKey.Enter)
+                {
+                    // Se viene premuto "Enter", si conclude l'input
+                    Console.WriteLine();  // Va a capo
+                    return OperationResult<string>.Ok(input.ToString());
+                }
+                else if (key.Key == ConsoleKey.Backspace && input.Length > 0)
+                {
+                    // Se viene premuto "Backspace", rimuove l'ultimo carattere
+                    input.Remove(input.Length - 1, 1);
+                    Console.Write("\b \b");  // Cancella il carattere dalla console
+                }
+                else if (!char.IsControl(key.KeyChar))
+                {
+                    // Aggiungi il carattere alla stringa se non è un tasto di controllo
+                    input.Append(key.KeyChar);
+                    Console.Write(key.KeyChar);  // Mostra il carattere nella console
+                }
+            }
+        }
+
 
         public virtual void DisplayMessage(string message)
         {
@@ -114,14 +172,19 @@ namespace PeerReviewClient
             while (true)
             {
                 var askConfirmation = PromptForInlineInput(localization.GetText(TranslateKey.DELETE_CREDENTIALS_CONFIRMATION));
-                if (askConfirmation.ToLower() == localization.GetText(TranslateKey.CONFIRMATION_YES))
+                if (askConfirmation.Result != ExecutionStatus.Done)
+                {
+                    return;
+                }
+
+                if (askConfirmation.Value.ToLower() == localization.GetText(TranslateKey.CONFIRMATION_YES))
                 {
                     CredentialsManager.DeleteLoginInfo();
                     DisplayMessage(localization.GetText(TranslateKey.DELETE_CREDENTIALS_DONE));
                     this.saveCredentials = false;
                     break;
                 }
-                else if (askConfirmation.ToLower() == localization.GetText(TranslateKey.CONFIRMATION_NO))
+                else if (askConfirmation.Value.ToLower() == localization.GetText(TranslateKey.CONFIRMATION_NO))
                 {
                     break;
                 }
@@ -132,20 +195,29 @@ namespace PeerReviewClient
             }
         }
 
-        public PeerReviewFeedbackDataJson GetFeedback(int lessonId, PeerReviewAnswerForFeedbackData answerData)
+        public OperationResult<PeerReviewFeedbackDataJson> GetFeedback(int lessonId, PeerReviewAnswerForFeedbackData answerData)
         {
             DisplayMessage(" ");
             DisplayMessage("Question: " + answerData.question);
             DisplayMessage("Answer: " + answerData.answer_text);
             DisplayMessage(" ");
-            var feedbackText = PromptForInput("Your Feedback: ");
+            var feedbackTextResult = PromptForInput("Your Feedback: ");
+            if(feedbackTextResult.Result != ExecutionStatus.Done)
+            {
+                return OperationResult<PeerReviewFeedbackDataJson>.Fail("EscapeClick");
+            }
 
+            var feedbackText = feedbackTextResult.Value;
             DisplayMessage(" ");
             var grade = -1;
             while (grade > 8 || grade < 4)
             {
-                var temp = PromptForInlineInput("Grade (4-8): ");
-                if (int.TryParse(temp, out grade) == false)
+                var gradeResult = PromptForInlineInput("Grade (4-8): ");
+                if(gradeResult.Result != ExecutionStatus.Done)
+                {
+                    return OperationResult<PeerReviewFeedbackDataJson>.Fail("EscapeClick");
+                }
+                if (int.TryParse(gradeResult.Value, out grade) == false)
                 {
                     DisplayMessage("Invalid input. Please try again.");
                 }
@@ -153,13 +225,23 @@ namespace PeerReviewClient
 
             DisplayMessage(" ");
             var missingElements = PromptForInput("Missing Elements: ");
+            if (missingElements.Result != ExecutionStatus.Done)
+            {
+                return OperationResult<PeerReviewFeedbackDataJson>.Fail("EscapeClick");
+            }
+
+            DisplayMessage(" ");            
             DisplayMessage(" ");
 
-
-            DisplayMessage(" ");
             // Chiedi se l'utente a cui sto facendo la peer review pensa che l'utente abbia usato GPT
             var isChatGpt = 0;
-            var isChatGptInput = PromptForInlineInput("Did the student use GPT? (y/n): ");
+            var isChatGptInputResult = PromptForInlineInput("Did the student use GPT? (y/n): ");
+            if (isChatGptInputResult.Result != ExecutionStatus.Done)
+            {
+                return OperationResult<PeerReviewFeedbackDataJson>.Fail("EscapeClick");
+            }
+
+            var isChatGptInput = isChatGptInputResult.Value;
             if (isChatGptInput.ToLower() == "y")
             {
                 isChatGpt = 1;
@@ -171,19 +253,24 @@ namespace PeerReviewClient
                 id = answerData.id,
                 feedback_text = feedbackText,
                 grade = grade,
-                missing_elements = missingElements,
+                missing_elements = missingElements.Value,
                 role = this.role,
                 token = this.token,
                 website = 8,
                 is_chat_gpt = isChatGpt
             };
-            return feedbackData;
+            return OperationResult< PeerReviewFeedbackDataJson>.Ok(feedbackData);
         }
 
         public bool SentFeedback(ILocalCache localCache, PeerReviewFeedbackDataJson feedbackData)
         {
             var confermation = PromptForInlineInput("Are you sure you want to submit the feedback? (y/n): ");
-            if (confermation.ToLower() == "y")
+            if (confermation.Result != ExecutionStatus.Done)
+            {
+                return false;
+            }
+
+            if (confermation.Value.ToLower() == "y")
             {
                 var postResult = localCache.Post(feedbackData, ApiHelper.PostFeedback());
                 if (postResult)

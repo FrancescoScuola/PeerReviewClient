@@ -13,7 +13,7 @@ namespace PeerReviewClient
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public static string filePath = "loginInfo.json";
-        public static string sw_version = "0.6.1";
+        public static string sw_version = "0.6.2";
         public static string api_version = "0.6.0";
         // Sito per l'api
         public static int WEBSITE = 8;
@@ -29,7 +29,7 @@ namespace PeerReviewClient
                 Console.WriteLine("Benvenuto in PeerReviewClient!");
                 Console.WriteLine("");
 
-                bool debugMode = IsDebugMode(args);
+                bool debugMode = IsDebugMode(args);               
 
                 var credentialsManager = new CredentialsManager(filePath);
                 var credentials = credentialsManager.GetCredentials();
@@ -79,6 +79,10 @@ namespace PeerReviewClient
                         token = loginResult.Value.guidToken,
                         role = credentials.role
                     };
+
+                    Console.WriteLine("");
+                    AnsiConsole.Markup($"[bold blue] 0.6.2 NEW ! Premi esc per tornare al menu principale[/]");                    
+                    Console.WriteLine("");
 
                     IMenu menu = CreateMenu(menuOptions);
 

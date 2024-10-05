@@ -2,13 +2,18 @@
 using System.Net;
 using Spectre.Console;
 using System.Diagnostics;
+using NLog;
+using NLog.Config;
+using NLog.Targets;
 
 namespace PeerReviewClient
 {
     internal class Program
     {
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+
         public static string filePath = "loginInfo.json";
-        public static string sw_version = "0.6.0";
+        public static string sw_version = "0.6.1";
         public static string api_version = "0.6.0";
         // Sito per l'api
         public static int WEBSITE = 8;
@@ -17,6 +22,8 @@ namespace PeerReviewClient
         {
             try
             {
+                InitLog();
+
                 var localization = new Localization("it");
 
                 Console.WriteLine("Benvenuto in PeerReviewClient!");
@@ -86,12 +93,40 @@ namespace PeerReviewClient
             }
             catch (Exception ex)
             {
+                logger.Error(ex, "Si è verificato un errore nel main.");
                 Console.WriteLine();
                 Console.WriteLine("Error: " + ex.Message);
             }
 
-            Console.WriteLine("Press any key to exit");
+            Console.WriteLine("Press any key to exit: ");
             var y = Console.ReadKey();
+
+        }
+
+        private static void InitLog() {
+
+            // Configurazione NLog via codice
+            var config = new LoggingConfiguration();
+
+            // Configura il target per scrivere i log su un file
+            var fileTarget = new FileTarget("logfile")
+            {
+                FileName = "logs/logfile.log",
+                Layout = "${longdate} | ${level:uppercase=true} | ${message} ${exception:format=tostring}"
+            };
+
+            // Aggiungi il target alla configurazione
+            config.AddTarget(fileTarget);
+
+            // Regola che manda tutti i log con livello >= Info al file
+            var rule = new LoggingRule("*", LogLevel.Info, fileTarget);
+            config.LoggingRules.Add(rule);
+
+            // Applica la configurazione
+            LogManager.Configuration = config;
+
+            // Inizio dell'applicazione
+            logger.Info("Applicazione avviata .....");
 
         }
 

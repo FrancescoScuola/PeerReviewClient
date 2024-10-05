@@ -62,10 +62,14 @@ namespace PeerReviewClient
                     // Non sa l'id del corso ma solo la password
                     if (int.TryParse(_credentials.courseID, out var parseResult) == false)
                     {
+                        Console.WriteLine(" ");
+                        AnsiConsole.MarkupLine($"[green]Ora ti stai iscrivendo al corso![/]");
                         if (EnrollStudent(_credentials, _client) == false)
                         {
                             continue;
                         }
+
+                        AnsiConsole.MarkupLine($"[green]Iscrizione avvenuta con successo[/]");
                     }
 
                     isLoginDone = true;

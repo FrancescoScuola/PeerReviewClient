@@ -83,8 +83,10 @@ namespace PeerReviewClient
                     Console.WriteLine("");
                     AnsiConsole.Markup($"[bold blue] 0.6.2 NEW ! Premi esc per tornare al menu principale[/]");                    
                     Console.WriteLine("");
+                    Console.WriteLine("");
 
                     IMenu menu = CreateMenu(menuOptions);
+                    await menu.InitMenu();
 
                     while (true)
                     {

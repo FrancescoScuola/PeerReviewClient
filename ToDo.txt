@@ -7,10 +7,11 @@
 - Il ragazzo può vedere i voti che ha preso dal docente				NO
 - Il ragazzo che non risponde prende un penalità					NO
 - Il ragazzo che non da feedback prende un penalità					NO
-- Il ragazzo può fare l'upload di un file (pdf)						NO
+- Il ragazzo può fare l'upload di un file (pdf)						x
 - Il ragazzo può fare l'upload di un file per il feedback (zip)		NO
 
 Insegnante:
+- il docente aggiunge/modifica la risposta alle domande segnalando	NO
 - il docente può vedere la media della classe                       NO
 - il docente può vedere la media di ogni studente                   NO
 - il docente può vedere le domande che ha fatto ogni studente       NO
@@ -18,6 +19,8 @@ Insegnante:
 - il docente assegna un voto ad un feedback                         NO
 - il docente puo vedere solo i suoi voti							NO
 - il docente può aggiungere la risposta alla domanda				NO
+- il docente può vedere i file caricati dagli studenti				NO
+
 
 Miscellaneous:
 - Cancella le credenziali, lo tolgo dal menu                        x

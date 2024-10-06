@@ -310,7 +310,9 @@
         public DateTime? created_at { get; set; }
         public ICollection<PeerReviewAnswerData> StudentAnswers { get; set; } = new List<PeerReviewAnswerData>();
         public int class_id { get; set; }
+        public int answer_review_status { get; set; }
     }
+
 
     public class PeerReviewAnswerData
     {

@@ -9,6 +9,11 @@
             this._localCache = new TeacherLocalCache(courseId, token, role, options.client);
         }
 
+        public override async Task InitMenu()
+        {
+            
+        }
+
         public override List<MenuOption> GetMenuOptions()
         {
             var menu = new List<MenuOption>();
@@ -16,11 +21,34 @@
             menu.Add(new MenuOption(this.localization.GetText(TranslateKey.ADD_LESSON), 2, AddLesson));
             menu.Add(new MenuOption(this.localization.GetText(TranslateKey.ADD_QUESTIONS_TO_LESSON), 3, AddQuestions));
             menu.Add(new MenuOption(this.localization.GetText(TranslateKey.MARK_QUESTION), 4, MarkQuestion));
+            menu.Add(new MenuOption(this.localization.GetText(TranslateKey.QUESTIONS_TO_REVIEW), 5, QuestionsToReview));
 
             if (this.saveCredentials)
                 menu.Add(new MenuOption(this.localization.GetText(TranslateKey.DELETE_CREDENTIALS), 11, DeleteCredentials));
             menu.Add(new MenuOption("Exit", 0, null));
             return menu;
+        }
+
+        private async Task QuestionsToReview()
+        {
+            DisplayTitle("Revisiona domande corrette");
+
+            var fetchData = await _localCache.GetQuestionsToReviewAsync();
+
+            if (fetchData.Result == ExecutionStatus.Done)
+            {
+                var value = fetchData.Value;
+                if (value != null)
+                {
+                    DisplayMessage(" ");
+                    var table = new TableHelper(this.studentsOptions, this.localization);
+                    table.PrintQuestionsToReview(value);
+                }
+                else
+                {
+                    DisplayMessage("No revisionare domande corrette found.");
+                }
+            }
         }
 
         private async Task MarkQuestion()

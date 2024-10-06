@@ -23,6 +23,7 @@
         ADD_LESSON,
         HOW_DO_GRADE,
         MARK_QUESTION,
+        QUESTIONS_TO_REVIEW,
     }
 
     public class Localization

@@ -11,7 +11,61 @@ namespace PeerReviewClient
 
         public StudentMenu(MenuInitOptionsData options) : base((options))
         {
-            this._localCache = new StudentLocalCache(courseId, token, role, options.client);
+            this._localCache = new StudentLocalCache(courseId, token, role, options.client);            
+        }
+
+        public override async Task InitMenu()
+        {
+            await ShowStudentLessons();
+            PrintToDoList();            
+        }
+
+        private void PrintToDoList()
+        {
+            var peerReviewClass = _localCache.GetStudentLessonSummaryDataAsync().Result.Value;
+            var todo = false;
+            Console.WriteLine(" ");
+            AnsiConsole.MarkupLine("[darkgreen] -------- ToDo --------:[/]");
+            Console.WriteLine(" ");
+
+            foreach (var lesson in peerReviewClass)
+            {
+                var dateChecker = new DateChecker(DateTime.Now, lesson.first_deadline, lesson.second_deadline);
+                var timeInterval = dateChecker.GetTimeInterval();
+                switch (timeInterval)
+                {
+                    case TimeInterval.BeforeFirstDeadline:
+                        if (lesson.count_questions_made < 2)
+                        {
+                            Console.WriteLine("- Rispondere alle domande lezione " + lesson.id + " - " + lesson.count_questions_made + "/2");
+                            todo = true;
+                        }
+                        break;
+                        
+                    case TimeInterval.BetweenDeadlines:
+                        if (lesson.count_feedback_made < 5)
+                        {
+                            Console.WriteLine("- Dare feedback lezione " + lesson.id + " - " + lesson.count_feedback_made + "/5");
+                            todo = true;
+                        }
+                        break;
+                    case TimeInterval.AfterSecondDeadline:                        
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+            if (todo == false)
+            {
+                Console.WriteLine("Nessun compito da svolgere.");
+            }
+
+            Console.WriteLine(" ");
+            AnsiConsole.MarkupLine("[darkgreen] ------------------------:[/]");
+            Console.WriteLine(" ");
+
         }
 
         public override List<MenuOption> GetMenuOptions()
@@ -111,6 +165,14 @@ namespace PeerReviewClient
                 }
             }
 
+            var timeForFeedback = _localCache.GetStudentLessonSummaryDataAsync().Result.Value.FirstOrDefault(x => x.id == lessonId)?.first_deadline;
+            if (timeForFeedback == null || timeForFeedback < DateTime.Now)
+            {
+                Console.WriteLine($"Non è ancora il momento di dare il feedback. Inizio ore: {timeForFeedback}");
+                return;
+            }
+
+
             var fetchResult = await _localCache.GetFeedbackAsync(lessonId);
             if (fetchResult.Result == ExecutionStatus.Done)
             {
@@ -196,7 +258,7 @@ namespace PeerReviewClient
                             }
 
                             var checkForConfermation = PromptForInlineInput("Vuoi confermare la risposta? (s/n): ");
-                            if(checkForConfermation.Result != ExecutionStatus.Done)
+                            if (checkForConfermation.Result != ExecutionStatus.Done)
                             {
                                 return;
                             }

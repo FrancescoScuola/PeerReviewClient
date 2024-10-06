@@ -123,6 +123,9 @@ namespace PeerReviewClient
 
         }
 
+       
+
+
         internal void PrintTeacherLessons(List<PeerReviewSummaryLessonTeacherData> peerReviewClass)
         {
             var listTable = new List<TeacherLessonTableData>();
@@ -295,6 +298,21 @@ namespace PeerReviewClient
             Console.WriteLine();
         }
 
+        public void PrintQuestionsToReview(IEnumerable<PeerReviewQuestionData> list)
+        {
+            var table = new Table();
+            table.Border = TableBorder.Horizontal;
+            table.AddColumns("ID", "question_text", "answer");
+            foreach (var question in list)
+            {                
+                table.AddRow(question.id.ToString(), question.question_text, question.answer);
+            }
+            table.Expand();
+            table.Columns[0].Centered();
+            AnsiConsole.Write(table);
+            Console.WriteLine();
+        }
+
 
     }
     public static class Helper
@@ -391,6 +409,11 @@ namespace PeerReviewClient
         internal static string GetAnswerStudentsDone(Guid token, int lesson_id, PeerReviewRole role, int website = 8)
         {
             return "PeerReview/Answer/Lesson/" + website + "/" + (int)role + "/" + lesson_id + "/" + token.ToString();
+        }
+
+        internal static string GetTeacherQuestionsToReview(Guid token, int courseId, PeerReviewRole role, int website = 8)
+        {
+            return "PeerReview/Question/Teacher/QuestionsToReview/" + website + "/" + (int)role + "/" + courseId + "/" + token.ToString();
         }
 
         internal static string PostEnroll()

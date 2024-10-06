@@ -265,7 +265,6 @@ namespace PeerReviewClient
 
         }
 
-
         public async Task<OperationResult<PeerReviewClassData>> GetPeerReviewClassDataAsync()
         {
             if (_isClassDataValid == false)
@@ -310,6 +309,25 @@ namespace PeerReviewClient
             }
             return OperationResult<IEnumerable<PeerReviewUserData>>.Fail("Error getting students.");
         }
+        public async Task<OperationResult<IEnumerable<PeerReviewQuestionData>>> GetQuestionsToReviewAsync()
+        {
+            var url = ApiHelper.GetTeacherQuestionsToReview(this.token, this.courseId, this.role);
+            var result = await GetFromApi(url);
+            if (result.IsSuccessStatusCode)
+            {
+                var response = await result.Content.ReadAsStringAsync();
+                var json = JsonConvert.DeserializeObject<IEnumerable<PeerReviewQuestionData>>(response);
+                if (json != null)
+                {
+                    return OperationResult<IEnumerable<PeerReviewQuestionData>>.Ok(json);
+                }
+            }
+            return OperationResult<IEnumerable<PeerReviewQuestionData>>.Fail("Error getting data.");
+        }
+
+
+
+
     }
 
 }

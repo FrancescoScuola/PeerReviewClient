@@ -10,6 +10,7 @@ namespace PeerReviewClient
         OperationResult<string> PromptForInput(string promptMessage);
         void DisplayMessage(string message);
         Task ExecuteAction(int optionId);
+        Task InitMenu();
     }
 
     public abstract class BaseMenu : IMenu
@@ -292,6 +293,7 @@ namespace PeerReviewClient
             return false;
         }
 
+        public abstract Task InitMenu();
     }
 
 

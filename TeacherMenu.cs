@@ -46,7 +46,7 @@
                 }
                 else
                 {
-                    DisplayMessage("No revisionare domande corrette found.");
+                    PrintError("No revisionare domande corrette found.");
                 }
             }
         }
@@ -107,7 +107,7 @@
 
                 if (int.TryParse(tQuestionIDResult.Value, out questionIdToMark) == false)
                 {
-                    DisplayMessage("Invalid input. Please try again.");
+                    PrintError("Invalid input. Please try again.");
                     continue;
                 }
 
@@ -119,7 +119,7 @@
                 }
                 else
                 {
-                    DisplayMessage("Question not found. Please try again.");
+                    PrintError("Question not found. Please try again.");
                 }
             }
 
@@ -195,12 +195,12 @@
 
             if (postResult)
             {
-                DisplayMessage("Lesson added successfully.");
+                PrintSuccess("Lesson added successfully.");
                 _localCache.ResetCache();
             }
             else
             {
-                DisplayMessage("Error adding lesson.");
+                PrintError("Error adding lesson.");
             }
 
         }
@@ -221,7 +221,7 @@
                 }
                 else
                 {
-                    DisplayMessage("No lessons found.");
+                    PrintError("No lessons found.");
                 }
             }
         }
@@ -240,7 +240,7 @@
 
                 if (int.TryParse(tLessonID.Value, out lessonId) == false)
                 {
-                    DisplayMessage("Invalid input. Please try again.");
+                    PrintError("Invalid input. Please try again.");
                     continue;
                 }
 
@@ -254,7 +254,7 @@
                     }
                     else
                     {
-                        DisplayMessage("Lesson not found. Please try again.");
+                        PrintError("Lesson not found. Please try again.");
                     }
                 }
                 else
@@ -280,7 +280,7 @@
             }
             else
             {
-                DisplayMessage("Errore nel recupero degli studenti");
+                PrintError("Errore nel recupero degli studenti");
                 return;
             }
 
@@ -300,7 +300,7 @@
                 {
                     if (questions.Count == 0)
                     {
-                        DisplayMessage("Inserire almeno una domanda.");
+                        PrintError("Inserire almeno una domanda.");
                     }
                     else
                     {
@@ -330,12 +330,12 @@
 
             if (postResult)
             {
-                DisplayMessage("Questions added successfully.");
+                PrintSuccess("Questions added successfully.");
                 _localCache.ResetCache();
             }
             else
             {
-                DisplayMessage("Error adding lesson.");
+                PrintError("Error adding lesson.");
             }
         }
 
@@ -405,7 +405,7 @@
                     }
                     else
                     {
-                        Menu.DisplayMessage($"Failed to convert {item}");
+                        Menu.PrintError($"Failed to convert {item}");
                     }
                 }
 
@@ -418,7 +418,7 @@
                     }
                     else
                     {
-                        Menu.DisplayMessage("Student not found. Please try again.");
+                        Menu.PrintError("Student not found. Please try again.");
                     }
                 }
 

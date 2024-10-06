@@ -13,8 +13,8 @@ namespace PeerReviewClient
     public class LocalCache : ILocalCache
     {
 
-        public static void PrintCacheMiss() { Console.WriteLine(); AnsiConsole.MarkupLine($"[lightslategrey]Cache Miss[/]"); }
-        public static void PrintCacheHit() { Console.WriteLine(); AnsiConsole.MarkupLine($"[lightslateblue]Cache Hit[/]"); }
+        public static void PrintCacheMiss() { } // Console.WriteLine(); AnsiConsole.MarkupLine($"[lightslategrey]Cache Miss[/]");
+        public static void PrintCacheHit() { } // Console.WriteLine(); AnsiConsole.MarkupLine($"[lightslateblue]Cache Hit[/]");
 
         protected int courseId { get; set; }
         protected Guid token { get; set; }

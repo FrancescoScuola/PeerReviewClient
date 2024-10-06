@@ -123,9 +123,6 @@ namespace PeerReviewClient
 
         }
 
-       
-
-
         internal void PrintTeacherLessons(List<PeerReviewSummaryLessonTeacherData> peerReviewClass)
         {
             var listTable = new List<TeacherLessonTableData>();

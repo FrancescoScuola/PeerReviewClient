@@ -1,4 +1,5 @@
 ﻿using Spectre.Console;
+using System.Diagnostics;
 using System.Text;
 
 namespace PeerReviewClient
@@ -25,6 +26,8 @@ namespace PeerReviewClient
         public AssignQuestionsToStudentsOptions studentsOptions { get; set; } = new AssignQuestionsToStudentsOptions();
 
         public Localization localization;
+
+        protected Singleton _singleton = Singleton.Instance;
 
         public BaseMenu(MenuInitOptionsData options)
         {
@@ -63,7 +66,7 @@ namespace PeerReviewClient
                         return selection;
                     }
                 }
-                Console.WriteLine("Invalid selection. Please try again.");
+                PrintError("Invalid selection. Please try again.");
             }
         }
 
@@ -94,7 +97,7 @@ namespace PeerReviewClient
                 {
                     return OperationResult<int>.Ok(selection);
                 }
-                Console.WriteLine("Invalid selection. Please try again.");
+                PrintError("Invalid selection. Please try again.");
             }
         }
 
@@ -135,7 +138,6 @@ namespace PeerReviewClient
             }
         }
 
-
         public virtual void DisplayMessage(string message)
         {
             Console.WriteLine(message);
@@ -143,8 +145,26 @@ namespace PeerReviewClient
 
         public virtual void DisplayTitle(string title)
         {
-            var messageToPrint = $"------ [gold3 bold] {title} [/] ------";
-            AnsiConsole.MarkupLine(messageToPrint);
+            if (Singleton.Instance.IsTimeMillisecondsPassed())
+            {
+                Console.WriteLine(" ");
+                var messageToPrint = $"------ [gold3 bold] {title} [/] ------";
+                AnsiConsole.MarkupLine(messageToPrint);
+                Console.WriteLine(" ");
+            }
+            else {
+                //Debugger.Break();
+            }           
+        }
+
+        public virtual void PrintError(string message)
+        {
+            AnsiConsole.MarkupLine($"[red]Error:[/] {message}");
+            Console.WriteLine(" ");
+        }
+        public virtual void PrintSuccess(string message)
+        {
+            AnsiConsole.MarkupLine($"[green]Success:[/] {message}");
         }
 
         public async Task ExecuteAction(int optionId)
@@ -157,7 +177,7 @@ namespace PeerReviewClient
             }
             else
             {
-                DisplayMessage("Invalid selection. Please try again.");
+                PrintError("Invalid selection. Please try again.");
             }
         }
 
@@ -191,7 +211,7 @@ namespace PeerReviewClient
                 }
                 else
                 {
-                    DisplayMessage("Invalid input. Please try again.");
+                    PrintError("Invalid input. Please try again.");
                 }
             }
         }
@@ -220,7 +240,7 @@ namespace PeerReviewClient
                 }
                 if (int.TryParse(gradeResult.Value, out grade) == false)
                 {
-                    DisplayMessage("Invalid input. Please try again.");
+                    PrintError("Invalid input. Please try again.");
                 }
             }
 
@@ -276,12 +296,12 @@ namespace PeerReviewClient
                 var postResult = localCache.Post(feedbackData, ApiHelper.PostFeedback());
                 if (postResult)
                 {
-                    DisplayMessage("Feedback submitted successfully.");
+                    PrintSuccess("Feedback submitted successfully.");
                     return true;
                 }
                 else
                 {
-                    DisplayMessage("Error submitting feedback.");
+                    PrintError("Error submitting feedback.");
                 }
             }
             else

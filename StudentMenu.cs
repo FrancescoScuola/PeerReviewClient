@@ -16,6 +16,7 @@ namespace PeerReviewClient
 
         public override async Task InitMenu()
         {
+            _singleton.SetTimer();
             await ShowStudentLessons();
             PrintToDoList();            
         }
@@ -25,7 +26,7 @@ namespace PeerReviewClient
             var peerReviewClass = _localCache.GetStudentLessonSummaryDataAsync().Result.Value;
             var todo = false;
             Console.WriteLine(" ");
-            AnsiConsole.MarkupLine("[darkgreen] -------- ToDo --------:[/]");
+            AnsiConsole.MarkupLine("[darkgreen] -------- ToDo --------[/]");
             Console.WriteLine(" ");
 
             foreach (var lesson in peerReviewClass)
@@ -63,7 +64,7 @@ namespace PeerReviewClient
             }
 
             Console.WriteLine(" ");
-            AnsiConsole.MarkupLine("[darkgreen] ------------------------:[/]");
+            AnsiConsole.MarkupLine("[darkgreen] ----------------------[/]");
             Console.WriteLine(" ");
 
         }
@@ -145,6 +146,8 @@ namespace PeerReviewClient
         {
             DisplayTitle("Give Feedback");
 
+            var allLessons = _localCache.GetStudentLessonSummaryDataAsync().Result.Value;
+
             var lessonId = -1;
             while (true)
             {
@@ -156,7 +159,13 @@ namespace PeerReviewClient
 
                 if (int.TryParse(temp.Value, out lessonId) == false)
                 {
-                    DisplayMessage("Invalid input. Please try again.");
+                    PrintError("Invalid input. Please try again.");
+                    continue;
+                }
+                
+                if(allLessons.Any(l => l.id == lessonId) == false)
+                {
+                    PrintError("Lesson not found. Please try again.");
                     continue;
                 }
                 else
@@ -166,9 +175,11 @@ namespace PeerReviewClient
             }
 
             var timeForFeedback = _localCache.GetStudentLessonSummaryDataAsync().Result.Value.FirstOrDefault(x => x.id == lessonId)?.first_deadline;
-            if (timeForFeedback == null || timeForFeedback < DateTime.Now)
+            if (timeForFeedback == null || DateTime.Now < timeForFeedback)
             {
-                Console.WriteLine($"Non è ancora il momento di dare il feedback. Inizio ore: {timeForFeedback}");
+                Console.WriteLine(" ");
+                PrintError($"Non è ancora il momento di dare il feedback. Torna alle ore: {timeForFeedback}.");
+                Console.WriteLine(" ");
                 return;
             }
 
@@ -192,12 +203,12 @@ namespace PeerReviewClient
                 }
                 else
                 {
-                    DisplayMessage("No feedback found.");
+                    PrintError("No feedback found.");
                 }
             }
             else
             {
-                DisplayMessage("Error getting feedback data.");
+                PrintError("Error getting feedback data.");
             }
         }
 
@@ -277,33 +288,33 @@ namespace PeerReviewClient
 
                                 if (submitAnswareResult)
                                 {
-                                    DisplayMessage("Answer submitted successfully.");
+                                    PrintSuccess("Answer submitted successfully.");
                                     _localCache.ResetCache();
                                 }
                                 else
                                 {
-                                    DisplayMessage("Error submitting answer.");
+                                    PrintError("Error submitting answer.");
                                 }
                             }
                             else
                             {
-                                DisplayMessage("Answer not submitted.");
+                                PrintError("Answer not submitted.");
                             }
                         }
                     }
                     else
                     {
-                        DisplayMessage("No assignment found.");
+                        PrintError("No assignment found.");
                     }
                 }
                 else
                 {
-                    DisplayMessage("No assignment found.");
+                    PrintError("No assignment found.");
                 }
             }
             else
             {
-                DisplayMessage("Error getting assignment data.");
+                PrintError("Error getting assignment data.");
             }
         }
 
@@ -395,7 +406,7 @@ namespace PeerReviewClient
                 }
                 if (string.IsNullOrEmpty(answer.Value))
                 {
-                    DisplayMessage("Answer cannot be empty. Please try again.");
+                    PrintError("Answer cannot be empty. Please try again.");
                 }
                 else
                 {
@@ -423,7 +434,7 @@ namespace PeerReviewClient
 
                 if (int.TryParse(tQuestionID.Value, out questionId) == false)
                 {
-                    DisplayMessage("Invalid input. Please try again.");
+                    PrintError("Invalid input. Please try again.");
                     continue;
                 }
                 // Check if question exists
@@ -433,7 +444,7 @@ namespace PeerReviewClient
                 }
                 else
                 {
-                    DisplayMessage("Question not found. Please try again.");
+                    PrintError("Question not found. Please try again.");
                 }
             }
 
@@ -454,7 +465,7 @@ namespace PeerReviewClient
 
                 if (int.TryParse(lessonIDResult.Value, out lessonId) == false)
                 {
-                    DisplayMessage("Invalid input. Please try again.");
+                    PrintError("Invalid input. Please try again.");
                     continue;
                 }
                 else
@@ -467,7 +478,7 @@ namespace PeerReviewClient
                     }
                     else
                     {
-                        DisplayMessage("Lesson not found. Please try again.");
+                        PrintError("Lesson not found. Please try again.");
                     }
                     break;
                 }
@@ -484,12 +495,12 @@ namespace PeerReviewClient
                 }
                 else
                 {
-                    DisplayMessage("No grades found.");
+                    PrintError("No grades found.");
                 }
             }
             else
             {
-                DisplayMessage("Error getting grades data.");
+                PrintError("Error getting grades data.");
             }
 
 

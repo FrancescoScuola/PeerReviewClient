@@ -70,6 +70,7 @@
             dictionary.Add(TranslateKey.ADD_LESSON, "Add Lesson");
             dictionary.Add(TranslateKey.HOW_DO_GRADE, "How do grade?");
             dictionary.Add(TranslateKey.MARK_QUESTION, "Mark question");
+            dictionary.Add(TranslateKey.QUESTIONS_TO_REVIEW, "Review correct answers");
 
             return dictionary;
         }
@@ -97,6 +98,7 @@
             dictionary.Add(TranslateKey.ADD_LESSON, "Aggiungi lezione");
             dictionary.Add(TranslateKey.HOW_DO_GRADE, "Come valutare?");
             dictionary.Add(TranslateKey.MARK_QUESTION, "Correggi domanda");
+            dictionary.Add(TranslateKey.QUESTIONS_TO_REVIEW, "Revisione risposte corrette");
 
 
             return dictionary;

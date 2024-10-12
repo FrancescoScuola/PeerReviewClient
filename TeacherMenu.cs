@@ -11,7 +11,7 @@
 
         public override async Task InitMenu()
         {
-            
+
         }
 
         public override List<MenuOption> GetMenuOptions()
@@ -33,16 +33,88 @@
         {
             DisplayTitle("Revisiona domande corrette");
 
+            //var courseId = this.courseId;
+            var courseId = -1;
             var fetchData = await _localCache.GetQuestionsToReviewAsync();
-
+            PeerReviewQuestionData? selectedLesson;
             if (fetchData.Result == ExecutionStatus.Done)
             {
                 var value = fetchData.Value;
-                if (value != null)
+                if (value != null && value.Count() > 0)
                 {
                     DisplayMessage(" ");
                     var table = new TableHelper(this.studentsOptions, this.localization);
                     table.PrintQuestionsToReview(value);
+
+                    var lessonId = -1;
+                    while (true)
+                    {
+                        var lessonIdStr = PromptForInlineInput("Lesson id: ");
+                        if (lessonIdStr.Result != ExecutionStatus.Done)
+                        {
+                            return;
+                        }
+                        if (int.TryParse(lessonIdStr.Value, out lessonId))
+                        {
+                            selectedLesson = value.FirstOrDefault(l => l.id == lessonId);
+                            if (selectedLesson != null)
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                PrintError("Lesson not found. Please try again.");
+                            }
+                        }
+                        else
+                        {
+                            PrintError("Invalid input. Please try again.");
+                        }
+                    }
+
+                    Console.WriteLine(" ");
+                    Console.WriteLine(selectedLesson.answer);
+
+                    var result = PromptForInlineInput("Mark as correct? (y/n): ");
+                    if (result.Result != ExecutionStatus.Done)
+                    {
+                        return;
+                    }
+                    var url = ApiHelper.PostCorrectAnswerToReview();
+                    var itemToSend = new CorrectAnswerToReviewJsonData()
+                    {
+                        token = this.token,
+                        answer = "",
+                        course_class_id = this.courseId,
+                        lesson_id = lessonId,
+                        role = PeerReviewRole.teacher,
+                        website = 8,
+                        is_answer_edit = true,
+                    };
+
+                    if (result.Value.ToLower() == "y")
+                    {
+
+                    }
+                    else
+                    {
+                        var feedback = PromptForInput("New answer: ");
+                        if (feedback.Result != ExecutionStatus.Done)
+                        {
+                            return;
+                        }
+                        itemToSend.answer = feedback.Value;
+                    }
+
+                    if (_localCache.Post(itemToSend, url))
+                    {
+                        PrintSuccess("Answer marked as correct.");
+                        _localCache.RemoveItemFromCache(CacheItemType.CorrectAnswers, lessonId);
+                    }
+                    else
+                    {
+                        PrintError("Error marking answer as correct.");
+                    }
                 }
                 else
                 {
@@ -50,11 +122,10 @@
                 }
             }
         }
-
         private async Task MarkQuestion()
         {
             DisplayTitle("Correggi una domanda");
-                      
+
             var lessonId = -1;
             PeerReviewLessonData lessonSelected = null;
             while (true)
@@ -88,17 +159,19 @@
                 {
                     DisplayMessage("Error getting class data...");
                 }
-            }            
+            }
 
             var fetchDataQuestionsToMark = await _localCache.GetQuestionsToMark(lessonId);
-            if (fetchDataQuestionsToMark.Result == ExecutionStatus.Done) {
+            if (fetchDataQuestionsToMark.Result == ExecutionStatus.Done)
+            {
                 var tableHelper = new TableHelper(this.studentsOptions, this.localization);
                 tableHelper.PrintQuestionsToMark(fetchDataQuestionsToMark.Value);
             }
 
             QuestionToMarkTeacherData questionToMark;
             var questionIdToMark = -1;
-            while (true) {
+            while (true)
+            {
                 var tQuestionIDResult = PromptForInlineInput("Question id: ");
                 if (tQuestionIDResult.Result != ExecutionStatus.Done)
                 {
@@ -124,19 +197,20 @@
             }
 
             var GetFeedbackData = GetFeedback(
-                lessonId, 
-                new PeerReviewAnswerForFeedbackData() {
-                id = questionToMark.answer_id,
-                answer_text= questionToMark.answer_text,
-                question = questionToMark.question_text
-            });
+                lessonId,
+                new PeerReviewAnswerForFeedbackData()
+                {
+                    id = questionToMark.answer_id,
+                    answer_text = questionToMark.answer_text,
+                    question = questionToMark.question_text
+                });
 
-            if(GetFeedbackData.Result != ExecutionStatus.Done)
+            if (GetFeedbackData.Result != ExecutionStatus.Done)
             {
                 return;
             }
 
-            if (SentFeedback(_localCache,GetFeedbackData.Value))
+            if (SentFeedback(_localCache, GetFeedbackData.Value))
             {
                 _localCache.ResetCache();
             }
@@ -147,13 +221,13 @@
             DisplayTitle("Adding Lesson");
 
             var title = PromptForInput("Title: ");
-            if(title.Result != ExecutionStatus.Done)
+            if (title.Result != ExecutionStatus.Done)
             {
                 return;
             }
 
             var fistDeadlineResult = PromptForInput("First Deadline in h (48 default): ");
-            if(fistDeadlineResult.Result != ExecutionStatus.Done)
+            if (fistDeadlineResult.Result != ExecutionStatus.Done)
             {
                 return;
             }
@@ -291,7 +365,7 @@
             while (true)
             {
                 var question = PromptForInlineInput($"Domanda {questions.Count + 1}: ");
-                if(question.Result != ExecutionStatus.Done)
+                if (question.Result != ExecutionStatus.Done)
                 {
                     return;
                 }
@@ -384,7 +458,7 @@
             while (true)
             {
                 var userInput = Menu.PromptForInlineInput("Student ID: ");
-                if(userInput.Result != ExecutionStatus.Done)
+                if (userInput.Result != ExecutionStatus.Done)
                 {
                     return OperationResult<IEnumerable<Student>>.Fail("EscapeClick");
                 }

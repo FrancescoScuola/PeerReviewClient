@@ -281,8 +281,9 @@ namespace PeerReviewClient
             {
 
                 var answerText = "-";
-                if (question.answer_text != null) { 
-                    answerText = question.answer_text.Length < 50 ? question.answer_text : question?.answer_text.Substring(0,49) + " ...";
+                if (question.answer_text != null)
+                {
+                    answerText = question.answer_text.Length < 50 ? question.answer_text : question?.answer_text.Substring(0, 49) + " ...";
                 }
                 var avarageGrade = question?.average_grade == null ? "-" : question?.average_grade.ToString();
                 var totalGrades = question?.total_grades == null ? "-" : question?.total_grades.ToString();
@@ -301,7 +302,7 @@ namespace PeerReviewClient
             table.Border = TableBorder.Horizontal;
             table.AddColumns("ID", "question_text", "answer");
             foreach (var question in list)
-            {                
+            {
                 table.AddRow(question.id.ToString(), question.question_text, question.answer);
             }
             table.Expand();
@@ -408,9 +409,14 @@ namespace PeerReviewClient
             return "PeerReview/Answer/Lesson/" + website + "/" + (int)role + "/" + lesson_id + "/" + token.ToString();
         }
 
-        internal static string GetTeacherQuestionsToReview(Guid token, int courseId, PeerReviewRole role, int website = 8)
+        internal static string GetCorrectAnswerToReview(Guid token, int courseId, PeerReviewRole role, int website = 8, int all_answer = -1)
         {
-            return "PeerReview/Question/Teacher/QuestionsToReview/" + website + "/" + (int)role + "/" + courseId + "/" + token.ToString();
+            return "PeerReview/Question/Teacher/CorrectAnswerToReview/" + website + "/" + (int)role + "/" + courseId + "/" + token.ToString() + "/" + all_answer;
+        }
+        
+        internal static string PostCorrectAnswerToReview()
+        {
+            return "PeerReview/Question/Teacher/CorrectAnswerToReview/";
         }
 
         internal static string PostEnroll()
@@ -507,5 +513,7 @@ namespace PeerReviewClient
             return current[0] != newVersion[0] || current[1] != newVersion[1];
         }
     }
+
+
 
 }

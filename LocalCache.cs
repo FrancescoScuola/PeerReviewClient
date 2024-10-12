@@ -182,6 +182,15 @@ namespace PeerReviewClient
         }
     }
 
+
+    public enum CacheItemType
+    {
+        Summary,
+        ClassData,
+        QuestionToMarkTeachers,
+        CorrectAnswers
+    }
+
     public class TeacherLocalCache : LocalCache {
 
         private List<PeerReviewSummaryLessonTeacherData> _summary = null;
@@ -190,10 +199,14 @@ namespace PeerReviewClient
 
         private List<QuestionToMarkTeacherData> _questionToMarkTeachers = null;
 
+        private IEnumerable<PeerReviewQuestionData> _correctAnswers = null;
+
         private bool _isSummaryValid { get => _summary != null; }
         private bool _isClassDataValid { get => _classData != null; }
 
         private bool _isQuestionToMarkTeachersValid { get => _questionToMarkTeachers != null; }
+
+        private bool _isCorrectAnswersValid { get => _correctAnswers != null; }
 
 
         public void ResetCache()
@@ -311,7 +324,7 @@ namespace PeerReviewClient
         }
         public async Task<OperationResult<IEnumerable<PeerReviewQuestionData>>> GetQuestionsToReviewAsync()
         {
-            var url = ApiHelper.GetTeacherQuestionsToReview(this.token, this.courseId, this.role);
+            var url = ApiHelper.GetCorrectAnswerToReview(this.token, this.courseId, this.role);
             var result = await GetFromApi(url);
             if (result.IsSuccessStatusCode)
             {
@@ -319,14 +332,33 @@ namespace PeerReviewClient
                 var json = JsonConvert.DeserializeObject<IEnumerable<PeerReviewQuestionData>>(response);
                 if (json != null)
                 {
+                    this._correctAnswers = json;
                     return OperationResult<IEnumerable<PeerReviewQuestionData>>.Ok(json);
                 }
             }
             return OperationResult<IEnumerable<PeerReviewQuestionData>>.Fail("Error getting data.");
         }
 
-
-
+        public bool RemoveItemFromCache(CacheItemType itemType, int lessonId)
+        {
+            switch(itemType)
+            {
+                case CacheItemType.Summary:
+                    this._summary = null;
+                    return true;
+                case CacheItemType.ClassData:
+                    this._classData = null;
+                    return true;
+                case CacheItemType.QuestionToMarkTeachers:
+                    this._questionToMarkTeachers = null;
+                    return true;
+                case CacheItemType.CorrectAnswers:
+                    this._correctAnswers = this._correctAnswers.Where(x => x.id != lessonId);
+                    return true;
+                default:
+                    return false;
+            }
+        }
 
     }
 

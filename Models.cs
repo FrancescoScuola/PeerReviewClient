@@ -264,6 +264,17 @@
         public string question_text { get; set; }
     }
 
+    public class CorrectAnswerToReviewJsonData
+    {
+        public int lesson_id { get; set; }
+        public PeerReviewRole role { get; set; }
+        public int website { get; set; }
+        public Guid token { get; set; }
+        public string answer { get; set; }
+        public bool is_answer_edit { get; set; }
+        public int course_class_id { get; set; }
+    }
+
     #endregion
 
     #region Model Data API

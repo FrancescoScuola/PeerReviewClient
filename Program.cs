@@ -13,8 +13,8 @@ namespace PeerReviewClient
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public static string filePath = "loginInfo.json";
-        public static string sw_version = "0.6.4";
-        public static string api_version = "0.6.1";
+        public static string sw_version = "0.6.5";
+        public static string api_version = "0.6.2";
         // Sito per l'api
         public static int WEBSITE = 8;
 
@@ -27,6 +27,8 @@ namespace PeerReviewClient
                 var localization = new Localization("it");
 
                 Console.WriteLine("Benvenuto in PeerReviewClient!");
+                Console.WriteLine("");
+                Console.WriteLine("Version: " + sw_version + " - Api version: " + api_version);
                 Console.WriteLine("");
 
                 bool debugMode = IsDebugMode(args);               
@@ -59,7 +61,9 @@ namespace PeerReviewClient
                     }
 
                     Console.WriteLine();
-                    AnsiConsole.Markup($"[bold darkgoldenrod]-.-.-.-.-.-.-.-.- Corso {credentials.courseID + " - " + loginResult.Value.CourseName} -.-.-.-.-.-.-.-.-[/]");
+                    var courseMessage = $"[darkgoldenrod] Corso {credentials.courseID + " - " + loginResult.Value.CourseName} [/]";
+                    var rule = new Rule(courseMessage);
+                    AnsiConsole.Write(rule);
                     Console.WriteLine();
 
                     // Controllo versione software
@@ -81,7 +85,9 @@ namespace PeerReviewClient
                     };
 
                     Console.WriteLine("");
-                    AnsiConsole.Markup($"[bold blue] 0.6.2 NEW ! Premi esc per tornare al menu principale[/]");                    
+                    AnsiConsole.Markup($"- 0.6.4 Premi esc per tornare al menu principale");
+                    Console.WriteLine("");
+                    AnsiConsole.Markup($"- 0.6.5 [bold blue]NEW![/] Visualizza i voti tramite dashboard");
                     Console.WriteLine("");
                     Console.WriteLine("");
 

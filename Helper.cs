@@ -221,14 +221,14 @@ namespace PeerReviewClient
 
                 var table = new Table();
                 table.Border = TableBorder.Horizontal;
-                table.AddColumns("#", "feedback", "missing elements", "grade");
+                table.AddColumns("#", "feedback", "missing elements", "grade", "role");
                 var i = 0;
                 float avarage = 0;
                 foreach (var feedback in item.feedbacks)
                 {
                     feedback.feedback_text = feedback.feedback_text.Replace("\n", " ");
                     feedback.missing_elements = feedback.missing_elements.Replace("\n", " ");
-                    table.AddRow(i.ToString(), feedback.feedback_text, feedback.missing_elements, feedback.grade.ToString());
+                    table.AddRow(i.ToString(), feedback.feedback_text, feedback.missing_elements, feedback.grade.ToString(), GetRole(feedback.feedback_role));
                     avarage += feedback.grade;
                     i++;
                 }
@@ -242,8 +242,24 @@ namespace PeerReviewClient
                 table.Expand();
                 table.Columns[0].Centered();
                 AnsiConsole.Write(table);
-                Console.WriteLine();
+                Console.WriteLine(" ");
+                Console.WriteLine(" ");
             }
+
+        }
+
+        private static string GetRole(PeerReviewRole role)
+        {
+            switch (role)
+            {
+                case PeerReviewRole.student:
+                    return ("[silver]student[/]");
+                case PeerReviewRole.teacher:
+                    return ("[green]teacher[/]");
+                case PeerReviewRole.admin:
+                    return ("[yellow]GPT[/]");
+            }
+            return ("[red]unknown[/]");
         }
 
         public void PrintQuestions(List<PeerReviewLessonData> list)
@@ -311,8 +327,36 @@ namespace PeerReviewClient
             Console.WriteLine();
         }
 
+        internal void PrintDashboard(List<PeerReviewLessonData> dashboard, List<PeerReviewRole> roles)
+        {
+            var list = Helper.ConvertPeerReviewLessonDataToDashboardData(dashboard, roles);
+            var itemsToPrint = new List<DashboardChartData>();
 
+            foreach (var item in list)
+            {
+                var grades = item.Grades.Count > 0 ? item.Grades.Average() : 0;
+                var color = grades >= 60 ? Color.Green : grades >= 50 ? Color.Yellow : Color.Red;
+                var valueDouble = double.Parse(grades.ToString());
+                itemsToPrint.Add(new DashboardChartData(item.Title, valueDouble, color));                
+            }
+
+            if (itemsToPrint.Count > 0)
+            {
+                AnsiConsole.Write(new BarChart()
+                    .Width(100)
+                    .Label("[green bold underline] Dashboard [/]")
+                    .CenterLabel()
+                    .AddItems(itemsToPrint));
+            }
+            else {
+                Console.WriteLine("Nessun voto presente");
+            }
+
+        }
+    
     }
+
+
     public static class Helper
     {
         public static string RemoveDiacritics(string text)
@@ -335,6 +379,52 @@ namespace PeerReviewClient
             }
             return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
         }
+
+        public static List<DashboardData> ConvertPeerReviewLessonDataToDashboardData(List<PeerReviewLessonData> dashboard, List<PeerReviewRole> roles)
+        {
+            var list = new List<DashboardData>();
+
+            foreach (var item in dashboard)
+            {
+                foreach (var lesson in item.lesson_questions)
+                {
+                    foreach (var answer in lesson.answers)
+                    {
+                        foreach (var feedback in answer.feedbacks)
+                        {
+                            if (roles.Contains(feedback.feedback_role))
+                            {
+
+                                var currentQuestion = list.FirstOrDefault(x => x.Id == item.id);
+                                if (currentQuestion == null)
+                                {
+                                    currentQuestion = new DashboardData
+                                    {
+                                        Id = item.id,
+                                        Title = item.title,
+                                        Grades = new List<int>()
+                                    };
+                                    // Converting float to int
+                                    var intGrade = (int)feedback.grade * 10;
+                                    currentQuestion.Grades.Add(intGrade);
+                                    list.Add(currentQuestion);
+                                }
+                                else
+                                {
+                                    // Converting float to int
+                                    var intGrade = (int)feedback.grade * 10;
+                                    currentQuestion.Grades.Add(intGrade);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return list;
+
+        }
+
 
     }
 
@@ -413,7 +503,12 @@ namespace PeerReviewClient
         {
             return "PeerReview/Question/Teacher/CorrectAnswerToReview/" + website + "/" + (int)role + "/" + courseId + "/" + token.ToString() + "/" + all_answer;
         }
-        
+
+        internal static string GetAllGrade(Guid token, PeerReviewRole role, int website = 8)
+        {
+            return "PeerReview/Answer/AllGrade/" + website + "/" + (int)role + "/" + token.ToString();
+        }
+
         internal static string PostCorrectAnswerToReview()
         {
             return "PeerReview/Question/Teacher/CorrectAnswerToReview/";

@@ -11,17 +11,17 @@ namespace PeerReviewClient
 
         public StudentMenu(MenuInitOptionsData options) : base((options))
         {
-            this._localCache = new StudentLocalCache(courseId, token, role, options.client);            
+            this._localCache = new StudentLocalCache(courseId, token, role, options.client);
         }
 
         public override async Task InitMenu()
         {
             _singleton.SetTimer();
             await ShowStudentLessons();
-            PrintToDoList();            
+            PrintToDoList();
         }
 
-        private void PrintToDoList()
+        private void PrintToDoListOld()
         {
             var peerReviewClass = _localCache.GetStudentLessonSummaryDataAsync().Result.Value;
             var todo = false;
@@ -42,7 +42,7 @@ namespace PeerReviewClient
                             todo = true;
                         }
                         break;
-                        
+
                     case TimeInterval.BetweenDeadlines:
                         if (lesson.count_feedback_made < 5)
                         {
@@ -50,7 +50,7 @@ namespace PeerReviewClient
                             todo = true;
                         }
                         break;
-                    case TimeInterval.AfterSecondDeadline:                        
+                    case TimeInterval.AfterSecondDeadline:
                         break;
 
                     default:
@@ -69,6 +69,61 @@ namespace PeerReviewClient
 
         }
 
+        private void PrintToDoList()
+        {
+            var peerReviewClass = _localCache.GetStudentLessonSummaryDataAsync().Result.Value;
+            var todo = false;
+            Console.WriteLine(" ");
+            
+            var sb = new StringBuilder();
+            foreach (var lesson in peerReviewClass)
+            {
+                var dateChecker = new DateChecker(DateTime.Now, lesson.first_deadline, lesson.second_deadline);
+                var timeInterval = dateChecker.GetTimeInterval();
+                switch (timeInterval)
+                {
+                    case TimeInterval.BeforeFirstDeadline:
+                        if (lesson.count_questions_made < 2)
+                        {
+                            sb.AppendLine(" ");
+                            sb.AppendLine("- Rispondere alle domande lezione " + lesson.id + " - " + lesson.count_questions_made + "/2");
+                            todo = true;
+                        }
+                        break;
+
+                    case TimeInterval.BetweenDeadlines:
+                        if (lesson.count_feedback_made < 5)
+                        {
+                            sb.AppendLine(" ");
+                            sb.AppendLine("- Dare feedback lezione " + lesson.id + " - " + lesson.count_feedback_made + "/5");
+                            todo = true;
+                        }
+                        break;
+                    case TimeInterval.AfterSecondDeadline:
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+            Panel panel = null;
+            if (todo == false)
+            {
+                panel = new Panel("Nessun compito da svolgere.");
+                
+            }
+            else {
+
+                panel = new Panel(sb.ToString());
+            }
+            panel.Header = new PanelHeader(" [yellow] ToDo list [/] ");
+            panel.Border = BoxBorder.Rounded;
+            panel.Expand = true;
+            AnsiConsole.Write(panel);
+        }
+
+
         public override List<MenuOption> GetMenuOptions()
         {
             var menu = new List<MenuOption>();
@@ -76,6 +131,7 @@ namespace PeerReviewClient
             menu.Add(new MenuOption(this.localization.GetText(TranslateKey.SUBMIT_ASSIGNMENT), 2, SubmitAssignment));
             menu.Add(new MenuOption(this.localization.GetText(TranslateKey.GIVE_FEEDBACK), 3, GiveFeedback));
             menu.Add(new MenuOption(this.localization.GetText(TranslateKey.VIEW_GRADES), 4, ViewGrades));
+            menu.Add(new MenuOption(this.localization.GetText(TranslateKey.DASHBOARD), 5, ViewDashboard));
             menu.Add(new MenuOption(this.localization.GetText(TranslateKey.HOW_DO_GRADE), 10, HowToGrade));
 
             if (this.saveCredentials)
@@ -85,6 +141,81 @@ namespace PeerReviewClient
             return menu;
 
         }
+
+        private async Task ViewDashboard()
+        {
+            DisplayTitle("Viewing Dashboard");
+            Console.WriteLine("");
+
+            var listRoleToShow = SelectRoleToShow();
+
+            var fetchData = await _localCache.GetDashboardAsync();
+            if (fetchData.Result == ExecutionStatus.Done)
+            {
+                var dashboard = fetchData.Value;
+                if (dashboard != null)
+                {
+                    var table = new TableHelper(this.studentsOptions, this.localization);
+                    table.PrintDashboard(dashboard, listRoleToShow);
+                }
+                else
+                {
+                    PrintError("No dashboard data found.");
+                }
+            }
+            else
+            {
+                PrintError("Error getting dashboard data.");
+            }
+        }
+
+        private List<PeerReviewRole> SelectRoleToShow()
+        {
+            var list = new List<PeerReviewRole>();
+            while (true)
+            {
+                // Ask for the user's favorite fruits
+                var roles = AnsiConsole.Prompt(
+                    new MultiSelectionPrompt<string>()
+                        .Title("Quali voti vuoi vedere?")
+                        .NotRequired() // Not required to have a favorite fruit
+                        .PageSize(10)
+                        .MoreChoicesText("[grey](Move up and down)[/]")
+                        .InstructionsText(
+                            "[grey](Press [blue]<space>[/] to toggle, " +
+                            "[green]<enter>[/] to accept)[/]")
+                        .AddChoices(new[] {
+                        "Students", "Teacher", "Gpt"
+                            }));
+                foreach (var role in roles)
+                {
+                    if (role == "Students")
+                    {
+                        list.Add(PeerReviewRole.student);
+                    }
+                    else if (role == "Teacher")
+                    {
+                        list.Add(PeerReviewRole.teacher);
+                    }
+                    else if (role == "Gpt")
+                    {
+                        list.Add(PeerReviewRole.admin);
+                    }
+                }
+
+                if(list.Count > 0)
+                {
+                    break;
+                }
+                else
+                {
+                    PrintError("Seleziona almeno un ruolo.");
+                }
+
+            }            
+            return list;
+        }
+
 
         private async Task HowToGrade()
         {
@@ -162,8 +293,8 @@ namespace PeerReviewClient
                     PrintError("Invalid input. Please try again.");
                     continue;
                 }
-                
-                if(allLessons.Any(l => l.id == lessonId) == false)
+
+                if (allLessons.Any(l => l.id == lessonId) == false)
                 {
                     PrintError("Lesson not found. Please try again.");
                     continue;
@@ -304,7 +435,7 @@ namespace PeerReviewClient
                     }
                     else
                     {
-                        PrintError("No assignment found.");
+                        Console.WriteLine("Nessuna domamanda a cui rispondere. Ricorda hai solo x giorni per rispondere...");
                     }
                 }
                 else
@@ -483,6 +614,8 @@ namespace PeerReviewClient
                     break;
                 }
             }
+
+            Console.WriteLine("");
 
             var fetchData = await _localCache.GetGradesAsync(lessonId);
             if (fetchData.Result == ExecutionStatus.Done)

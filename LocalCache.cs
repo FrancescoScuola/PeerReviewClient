@@ -51,13 +51,20 @@ namespace PeerReviewClient
 
         private List<PeerReviewLessonData> _todoQuestions = null;
 
+        private List<PeerReviewLessonData> _dashboard = null;
+
+
         private bool _isSummaryValid { get => _summary != null; }
         private bool _isToDoQuestionsValid { get => _todoQuestions != null; }
+        private bool _isDashboardValid { get => _dashboard != null; }
+
+
 
         public void ResetCache()
         {
             this._summary = null;
             this._todoQuestions = null;
+            this._dashboard = null;
         }
 
         public StudentLocalCache(int courseId, Guid token, PeerReviewRole role, HttpClient client) : base(courseId, token, role, client)
@@ -180,6 +187,41 @@ namespace PeerReviewClient
             }
             return OperationResult<List<PeerReviewAnswerData>>.Fail("Error getting feedback.");
         }
+
+        internal async Task<OperationResult<List<PeerReviewLessonData>>> GetDashboardAsync()
+        {            
+            if (_isDashboardValid == true)
+            {
+                PrintCacheHit();
+                return OperationResult<List<PeerReviewLessonData>>.Ok(this._dashboard);
+            }
+
+            var ulr = ApiHelper.GetAllGrade(this.token, this.role);
+            var result = await GetFromApi(ulr);
+            if (result.IsSuccessStatusCode)
+            {
+                try
+                {
+                    var response = await result.Content.ReadAsStringAsync();
+                    // BUG FIX - the response is a string, not a list of PeerReviewLessonData ???
+                    //string correctedJson = JsonConvert.DeserializeObject<string>(response.ToString());
+                    var item = JsonConvert.DeserializeObject<List<PeerReviewLessonData>>(response.ToString());
+                    if (item != null)
+                    {
+                        this._dashboard = item;
+                        return OperationResult<List<PeerReviewLessonData>>.Ok(item);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.Write(ex.Message);
+                }
+            }
+            return OperationResult<List<PeerReviewLessonData>>.Fail("Error getting feedback.");
+        }
+
+
+
     }
 
 

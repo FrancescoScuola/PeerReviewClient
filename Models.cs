@@ -1,4 +1,6 @@
-﻿namespace PeerReviewClient
+﻿using Spectre.Console;
+
+namespace PeerReviewClient
 {
     public enum PeerReviewRole { student = 1, teacher = 2, admin = 3 }
 
@@ -33,7 +35,7 @@
         Incompatible
     }
 
-    public enum Color { green, red, yellow , lightslategrey , lightslateblue }
+    //public enum Color { green, red, yellow , lightslategrey , lightslateblue }
     
     public class Credentials
     {
@@ -42,6 +44,13 @@
         public string courseID { get; set; }
         public PeerReviewRole role { get; set; }
         public bool isCredentialFileExist { get; set; }
+    }
+
+    public class DashboardData
+    {
+        public required int Id { get; set; }
+        public required string Title { get; set; }
+        public required List<int> Grades { get; set; } = [];
     }
 
     public class LoginResultData
@@ -153,6 +162,21 @@
         public string answered_questions_range { get; set; }
         public string count_feedback_made_range { get; set; }
     }
+
+    public sealed class DashboardChartData : IBarChartItem
+    {
+        public string Label { get; set; }
+        public double Value { get; set; }
+        public Color? Color { get; set; }
+
+        public DashboardChartData(string label, double value, Color? color = null)
+        {
+            Label = label;
+            Value = value;
+            Color = color;
+        }
+    }
+
 
     #region JSON Data   
 
@@ -290,6 +314,8 @@
         public ICollection<PeerReviewLessonData> lessons { get; set; } = new List<PeerReviewLessonData>();
     }
 
+    
+
     public class PeerReviewUserData
     {
         public int id { get; set; }
@@ -309,7 +335,7 @@
         public DateTime? second_deadline { get; set; }
         public string content_html { get; set; }
         public int class_id { get; set; }
-        public ICollection<PeerReviewQuestionData> lesson_questions { get; set; }
+        public ICollection<PeerReviewQuestionData> lesson_questions { get; set; } = new List<PeerReviewQuestionData>();
         public string reservations_list_json { get; set; }
     }
 
@@ -317,13 +343,22 @@
     {
         public int id { get; set; }
         public string question_text { get; set; }
-        public string answer { get; set; }
         public DateTime? created_at { get; set; }
-        public ICollection<PeerReviewAnswerData> StudentAnswers { get; set; } = new List<PeerReviewAnswerData>();
+        public ICollection<PeerReviewAnswerData> answers { get; set; }
         public int class_id { get; set; }
+
+        /// <summary>
+        ///  Correct answer for the question
+        /// </summary>
+        public string answer { get; set; }
+
+        /// <summary>
+        /// Mi indica se ho già revisionato la risposta
+        /// 0 NO
+        /// 1,2,3 SI
+        /// </summary>
         public int answer_review_status { get; set; }
     }
-
 
     public class PeerReviewAnswerData
     {
@@ -334,6 +369,7 @@
         public DateTime? created_at { get; set; }
         public ICollection<PeerReviewFeedbackData> feedbacks { get; set; }
         public string question_text { get; set; }
+        public int is_chat_gpt { get; set; }
     }
 
     public class PeerReviewFeedbackData
@@ -361,6 +397,9 @@
         public Guid token { get; set; }
         public int is_chat_gpt { get; set; }    
     }
+
+    
+
 
     public class PeerReviewRoleData
     {

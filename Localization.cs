@@ -24,6 +24,7 @@
         HOW_DO_GRADE,
         MARK_QUESTION,
         QUESTIONS_TO_REVIEW,
+        DASHBOARD,
     }
 
     public class Localization
@@ -71,6 +72,7 @@
             dictionary.Add(TranslateKey.HOW_DO_GRADE, "How do grade?");
             dictionary.Add(TranslateKey.MARK_QUESTION, "Mark question");
             dictionary.Add(TranslateKey.QUESTIONS_TO_REVIEW, "Review correct answers");
+            dictionary.Add(TranslateKey.DASHBOARD, "Dashboard");
 
             return dictionary;
         }
@@ -99,6 +101,7 @@
             dictionary.Add(TranslateKey.HOW_DO_GRADE, "Come valutare?");
             dictionary.Add(TranslateKey.MARK_QUESTION, "Correggi domanda");
             dictionary.Add(TranslateKey.QUESTIONS_TO_REVIEW, "Revisione risposte corrette");
+            dictionary.Add(TranslateKey.DASHBOARD, "Dashboard");    
 
 
             return dictionary;

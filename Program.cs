@@ -57,6 +57,8 @@ namespace PeerReviewClient
                     if (loginResult.Result != ExecutionStatus.Done)
                     {
                         AnsiConsole.MarkupLine($"[red]{loginResult.Message}[/]");
+                        Console.WriteLine("Press any key to exit: ");
+                        var y1 = Console.ReadKey();
                         return;
                     }
 
@@ -71,6 +73,8 @@ namespace PeerReviewClient
                     AnsiConsole.MarkupLine(checkSwVersion.Message);
                     if (checkSwVersion.Result != ExecutionStatus.Done)
                     {
+                        Console.WriteLine("Press any key to exit: ");
+                        var y2 = Console.ReadKey();
                         return;
                     }
 

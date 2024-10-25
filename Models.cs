@@ -73,9 +73,9 @@ namespace PeerReviewClient
 
     public class UserResponse
     {
-        public string Response { get; set; }
+        public required string Response { get; set; }
         public bool IsFilePresent { get; set; }
-        public string FilePath { get; set; }
+        public string? FilePath { get; set; }
     }
 
     public class MenuOption

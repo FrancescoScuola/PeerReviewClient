@@ -13,7 +13,7 @@ namespace PeerReviewClient
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public static string filePath = "loginInfo.json";
-        public static string sw_version = "0.6.5";
+        public static string sw_version = "0.6.6";
         public static string api_version = "0.6.2";
         // Sito per l'api
         public static int WEBSITE = 8;
@@ -31,7 +31,8 @@ namespace PeerReviewClient
                 Console.WriteLine("Version: " + sw_version + " - Api version: " + api_version);
                 Console.WriteLine("");
 
-                bool debugMode = IsDebugMode(args);               
+                bool debugMode = IsDebugMode(args);
+                debugMode = false;
 
                 var credentialsManager = new CredentialsManager(filePath);
                 var credentials = credentialsManager.GetCredentials();
@@ -92,6 +93,8 @@ namespace PeerReviewClient
                     AnsiConsole.Markup($"- 0.6.4 Premi esc per tornare al menu principale");
                     Console.WriteLine("");
                     AnsiConsole.Markup($"- 0.6.5 [bold blue]NEW![/] Visualizza i voti tramite dashboard");
+                    Console.WriteLine("");
+                    AnsiConsole.Markup($"- 0.6.6 Bug fix - path nella risposta.");
                     Console.WriteLine("");
                     Console.WriteLine("");
 

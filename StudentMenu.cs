@@ -640,14 +640,10 @@ namespace PeerReviewClient
         }
         public static UserResponse GetUserResponse()
         {
-            Console.WriteLine("Scrivi la tua risposta (puoi inserire anche un file path):");
-
-            // Regex per rilevare un percorso di file multi-piattaforma (Windows, Linux, macOS)
-            string filePathPattern = @"[a-zA-Z]:\\(?:[^\\/:*?""<>|\r\n]+\\)*[^\\/:*?""<>|\r\n]+|(/[^/ ]*)+/?|~(/[^/ ]*)+/?";
-            Regex regex = new Regex(filePathPattern);
+            Console.WriteLine("Scrivi la tua risposta (puoi inserire anche un file pdf inserendo il path alla fine della risposta)");
 
             string response = string.Empty;
-            string filePath = null;
+            string? filePath = null;
 
             while (true)
             {
@@ -669,14 +665,15 @@ namespace PeerReviewClient
                     Console.Write(key.KeyChar);
                 }
 
-                // Controlla se l'input contiene un percorso di file
-                if (regex.IsMatch(response))
+                // Cerca se ci sono potenziali percorsi di file all'interno della risposta
+                string[] words = response.Split(' '); // Suddivide la risposta in parole
+                foreach (var word in words)
                 {
-                    filePath = regex.Match(response).Value;
-                    if (File.Exists(filePath))
+                    // Verifica se la "parola" sembra essere un percorso di file e se esiste
+                    if (Path.IsPathFullyQualified(word) && File.Exists(word))
                     {
-                        Markup.Escape("[green] File trovato![/]");
-                        Console.WriteLine("");
+                        filePath = word;
+                        Console.WriteLine("\nFile trovato! Premi Ok per inserire terminare la risposta.");
                         break;
                     }
                 }

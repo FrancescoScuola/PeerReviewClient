@@ -34,3 +34,11 @@ Miscellaneous:
 - Tutte le domande immesse vengono controllate per la presenza 
 di caratteri che identificano l'autore								NO
 
+
+Bugs:
+
+- IsFeedbackAvailable (Aggiungi il feedback funziona sempre ... )
+
+
+
+

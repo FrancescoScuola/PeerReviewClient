@@ -13,8 +13,8 @@ namespace PeerReviewClient
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public static string filePath = "loginInfo.json";
-        public static string sw_version = "0.6.6";
-        public static string api_version = "0.6.2";
+        public static string sw_version = "0.7.0";
+        public static string api_version = "0.7.0";
         // Sito per l'api
         public static int WEBSITE = 8;
 
@@ -91,6 +91,8 @@ namespace PeerReviewClient
                         role = credentials.role
                     };
 
+                    Console.WriteLine("");
+                    AnsiConsole.Markup($"- 0.7.0 Cambiato il controllo del ruolo");
                     Console.WriteLine("");
                     AnsiConsole.Markup($"- 0.6.4 Premi esc per tornare al menu principale");
                     Console.WriteLine("");

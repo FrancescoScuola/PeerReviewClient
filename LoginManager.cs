@@ -87,6 +87,7 @@ namespace PeerReviewClient
                         _credentials.isCredentialFileExist = testCheckRole.Result.Value.isCredentialsFound;
                         loginResultData.swVersion = testCheckRole.Result.Value.peerReviewRoleResponse;
                         loginResultData.CourseName = testCheckRole.Result.Value.peerReviewRoleResponse.class_name;
+                        loginResultData.role_auth = testCheckRole.Result.Value.peerReviewRoleResponse.role_auth;
                         isRoleFound = true;
                         break;
                     }

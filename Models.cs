@@ -58,6 +58,7 @@ namespace PeerReviewClient
         public Guid guidToken { get; set; } = new Guid();
         public PeerReviewRoleResponseJsonData swVersion { get; set; } = new PeerReviewRoleResponseJsonData();        
         public string CourseName { get; set; }
+        public string? role_auth { get; set; }
     }
 
     // Classe per inizializiare il menu
@@ -252,6 +253,7 @@ namespace PeerReviewClient
         public string software_version { get; set; }
         public string class_name { get; set; }
         public string role { get; set; }
+        public string role_auth { get; set; }
     }
 
     public class CheckRoleResult {

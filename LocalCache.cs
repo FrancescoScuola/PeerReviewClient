@@ -1,5 +1,5 @@
 ﻿using Newtonsoft.Json;
-using Spectre.Console;
+using NLog;
 using System.Text;
 
 namespace PeerReviewClient
@@ -12,6 +12,7 @@ namespace PeerReviewClient
 
     public class LocalCache : ILocalCache
     {
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public static void PrintCacheMiss() { } // Console.WriteLine(); AnsiConsole.MarkupLine($"[lightslategrey]Cache Miss[/]");
         public static void PrintCacheHit() { } // Console.WriteLine(); AnsiConsole.MarkupLine($"[lightslateblue]Cache Hit[/]");
@@ -32,6 +33,11 @@ namespace PeerReviewClient
         public async Task<HttpResponseMessage> GetFromApi(string relativePath)
         {
             var getResponse = await this.client.GetAsync(relativePath);
+            if (getResponse.IsSuccessStatusCode == false)
+            {
+                var errorContent = await getResponse.Content.ReadAsStringAsync();
+                logger.Error(new Exception("Error in GetFromApi()"), errorContent);                
+            }
             return getResponse;
         }
 
@@ -82,7 +88,6 @@ namespace PeerReviewClient
                 if (result.IsSuccessStatusCode)
                 {
                     var response = await result.Content.ReadAsStringAsync();
-                    // convert response to PeerReviewClassData
                     var summary = JsonConvert.DeserializeObject<List<PeerReviewSummaryLessonStudentData>>(response);
                     if (summary != null)
                     {

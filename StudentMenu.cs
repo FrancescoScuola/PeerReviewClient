@@ -72,6 +72,11 @@ namespace PeerReviewClient
         private void PrintToDoList()
         {
             var peerReviewClass = _localCache.GetStudentLessonSummaryDataAsync().Result.Value;
+            if(peerReviewClass == null)
+            {
+                PrintError("Errore nel recuperare le informazioni dal sito.");
+                return;
+            }
             var todo = false;
             Console.WriteLine(" ");
             

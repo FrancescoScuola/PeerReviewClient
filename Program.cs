@@ -44,7 +44,7 @@ namespace PeerReviewClient
                     UseCookies = true
                 };
 
-                using (var client = new HttpClient(handler))
+                using (var client = new HttpClient(handler,false))
                 {
                     // Imposta l'URL base per il client
                     client.BaseAddress = new Uri(ApiHelper.GetApiBase(debugMode));
@@ -62,6 +62,8 @@ namespace PeerReviewClient
                         var y1 = Console.ReadKey();
                         return;
                     }
+
+                    client.DefaultRequestHeaders.Add("x-role", loginResult.Value.role_auth);
 
                     Console.WriteLine();
                     var courseMessage = $"[darkgoldenrod] Corso {credentials.courseID + " - " + loginResult.Value.CourseName} [/]";

@@ -48,9 +48,9 @@ namespace PeerReviewClient
 
     public class DashboardData
     {
-        public required int Id { get; set; }
-        public required string Title { get; set; }
-        public required List<int> Grades { get; set; } = [];
+        public int Id { get; set; }
+        public string Title { get; set; }
+        public List<int> Grades { get; set; } = new List<int>();
     }
 
     public class LoginResultData
@@ -74,7 +74,7 @@ namespace PeerReviewClient
 
     public class UserResponse
     {
-        public required string Response { get; set; }
+        public string Response { get; set; }
         public bool IsFilePresent { get; set; }
         public string? FilePath { get; set; }
     }

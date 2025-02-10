@@ -1,4 +1,5 @@
-﻿using Spectre.Console;
+﻿using NLog;
+using Spectre.Console;
 using System.Diagnostics;
 using System.Text;
 
@@ -28,6 +29,8 @@ namespace PeerReviewClient
         public Localization localization;
 
         protected Singleton _singleton = Singleton.Instance;
+
+        protected static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public BaseMenu(MenuInitOptionsData options)
         {

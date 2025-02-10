@@ -470,8 +470,15 @@ namespace PeerReviewClient
             var json = JsonConvert.SerializeObject(peerReviewAnswer);
             var data = new StringContent(json, Encoding.UTF8, "application/json");
 
-            // Invia la risposta
-            var response = Client.PostAsync("PeerReview/Answer", data);
+            // Invia la risposta 
+            // TODO SPOSTARE LA LOGINA IN UN UNICO POSTO
+            var url = "PeerReview/Answer";
+            var response = Client.PostAsync(url, data);
+
+            if (Program.SAVE_JSON_REPLAY_SERVER)
+            {
+                logger.Info(url + "\n" + json);
+            }
 
             return response.Result.IsSuccessStatusCode;
 

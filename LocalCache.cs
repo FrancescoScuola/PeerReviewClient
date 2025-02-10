@@ -38,6 +38,13 @@ namespace PeerReviewClient
                 var errorContent = await getResponse.Content.ReadAsStringAsync();
                 logger.Error(new Exception("Error in GetFromApi()"), errorContent);                
             }
+
+            if(Program.SAVE_JSON_REPLAY_SERVER)
+            {
+                var json = await getResponse.Content.ReadAsStringAsync();
+                logger.Info(relativePath + "\n" + json);
+            }
+
             return getResponse;
         }
 
@@ -46,6 +53,12 @@ namespace PeerReviewClient
             var json = JsonConvert.SerializeObject(item);
             var data = new StringContent(json, Encoding.UTF8, "application/json");
             var response = this.client.PostAsync(url, data);
+
+            if (Program.SAVE_JSON_REPLAY_SERVER)
+            {
+                logger.Info(url + "\n" + json);
+            }
+
             return response.Result.IsSuccessStatusCode;
         }
 

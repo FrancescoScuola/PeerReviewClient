@@ -11,6 +11,7 @@ namespace PeerReviewClient
     internal class Program
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        public static readonly bool SAVE_JSON_REPLAY_SERVER = true;
 
         public static string filePath = "loginInfo.json";
         public static string sw_version = "0.7.0";
